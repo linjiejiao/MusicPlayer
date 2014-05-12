@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
-    <TextView 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="palying"
-        android:textSize="100sp"/>
+    android:layout_height="match_parent" >
 
-</LinearLayout>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@drawable/song_pic_default"
+        android:src="@drawable/song_pic_default" />
+
+    <cn.ljj.musicplayer.ui.LrcView
+        android:id="@+id/lrc_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none" >
+    </cn.ljj.musicplayer.ui.LrcView>
+
+</FrameLayout>

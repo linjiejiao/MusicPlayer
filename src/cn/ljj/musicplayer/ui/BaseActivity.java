@@ -33,7 +33,7 @@ public class BaseActivity extends FragmentActivity {
 		@Override
 		public Fragment getItem(int position) {
 			Fragment fragment = null;
-			if(position == 0)
+			if(position == 1)
 				fragment = new PlayListFragment();
 			else{
 				fragment = new PlayingFragment();

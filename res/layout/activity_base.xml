@@ -2,15 +2,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_playback"
     android:orientation="vertical"
     tools:context=".BaseActivity" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="search" />
+    </LinearLayout>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@drawable/bg_playback"
         tools:context=".MainActivity" >
     </android.support.v4.view.ViewPager>
 
@@ -87,7 +103,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="10sp"
-                android:text="@string/time_zero" />
+                android:text="@string/time_zero"
+                android:textColor="#ffffff" />
 
             <SeekBar
                 android:id="@+id/seekBar1"
@@ -101,7 +118,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginRight="10sp"
-                android:text="@string/time_zero" />
+                android:text="@string/time_zero"
+                android:textColor="#ffffff" />
         </LinearLayout>
     </LinearLayout>
 
