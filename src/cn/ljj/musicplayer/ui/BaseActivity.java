@@ -8,11 +8,16 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
-public class BaseActivity extends FragmentActivity {
+public class BaseActivity extends FragmentActivity implements OnClickListener{
 	SectionsPagerAdapter mSectionsPagerAdapter;
 	ViewPager mViewPager;
-	
+	Button mBtnNext = null;
+	Button mBtnPrev = null;
+	Button mBtnPlay = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -22,8 +27,14 @@ public class BaseActivity extends FragmentActivity {
 
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
+		mBtnNext = (Button) findViewById(R.id.buttonNext);
+		mBtnPrev = (Button) findViewById(R.id.buttonPrev);
+		mBtnPlay = (Button) findViewById(R.id.buttonPlay);
+		mBtnNext.setOnClickListener(this);
+		mBtnPrev.setOnClickListener(this);
+		mBtnPlay.setOnClickListener(this);
 	}
-
+	PlayingFragment playing = null;
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		public SectionsPagerAdapter(FragmentManager fm) {
@@ -36,7 +47,8 @@ public class BaseActivity extends FragmentActivity {
 			if(position == 1)
 				fragment = new PlayListFragment();
 			else{
-				fragment = new PlayingFragment();
+				playing = new PlayingFragment();
+				fragment = playing;
 			}
 			return fragment;
 		}
@@ -60,9 +72,33 @@ public class BaseActivity extends FragmentActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.base, menu);
 		return true;
+	}
+	int i = 0;
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()){
+			case R.id.buttonNext:
+				i++;
+				if(i>29){
+					i=0;
+				}
+				playing.lrc_view.highlight(i);
+				break;
+			case R.id.buttonPlay:
+				i=0;
+				playing.lrc_view.highlight(i);
+				break;
+			case R.id.buttonPrev:
+				i--;
+				if(i<0){
+					i=29;
+				}
+				playing.lrc_view.highlight(i);
+				
+				break;
+		}
 	}
 
 }

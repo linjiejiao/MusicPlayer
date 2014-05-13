@@ -4,6 +4,7 @@
     android:layout_height="match_parent" >
 
     <ImageView
+        android:id="@+id/song_pic"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@drawable/song_pic_default"
@@ -13,7 +14,15 @@
         android:id="@+id/lrc_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="15sp"
         android:scrollbars="none" >
     </cn.ljj.musicplayer.ui.LrcView>
+    <ImageView
+        android:id="@+id/lrc_mask"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@drawable/lrc_mask"
+        android:src="@drawable/lrc_mask"
+        android:scaleType="fitXY" />
 
 </FrameLayout>
