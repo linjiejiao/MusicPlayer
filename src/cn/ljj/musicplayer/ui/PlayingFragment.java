@@ -6,6 +6,7 @@ import java.util.List;
 import cn.ljj.musicplayer.R;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -16,43 +17,33 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 	View mRootView = null;
 	public LrcView lrc_view = null;
 	private ImageView mSongPic = null;
-	private ImageView mLrcMask = null;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		mRootView = inflater.inflate(R.layout.fragment_playing, container, false);
 		lrc_view = (LrcView)mRootView.findViewById(R.id.lrc_view);
+		lrc_view.init();
+//		lrc_view.setOnClickListener(this);
 		mSongPic = (ImageView) mRootView.findViewById(R.id.song_pic);
-		mLrcMask = (ImageView) mRootView.findViewById(R.id.lrc_mask);
 		mSongPic.setOnClickListener(this);
-		mLrcMask.setOnClickListener(this);
+		setLrcs(null);
 		return mRootView;
 	}
 
 	@Override
 	public void onClick(View v) {
 		switch(v.getId()){
-			case R.id.lrc_mask:
-				if(mLrcMask.getVisibility() == View.GONE){
+			case R.id.song_pic:
+				if(lrc_view.getVisibility() == View.GONE){
 					setLrcs(null);
-					mLrcMask.setVisibility(View.VISIBLE);
 					lrc_view.setVisibility(View.VISIBLE);
 				}else{
-					mLrcMask.setVisibility(View.GONE);
 					lrc_view.setVisibility(View.GONE);
 				}
 				break;
-			case R.id.lrc_view:
-				break;
-			case R.id.song_pic:
-				if(mLrcMask.getVisibility() == View.GONE){
-					setLrcs(null);
-					mLrcMask.setVisibility(View.VISIBLE);
-					lrc_view.setVisibility(View.VISIBLE);
-				}
-				break;
 		}
+		Log.e("onClick", "v="+v.getId());
 	}
 
 	private void setLrcs(List<String> lrcs){
@@ -85,7 +76,7 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 		lrcs.add("lhjjgffdyadssxb");
 		lrcs.add("12tgoafsag333333333333333333333333333hlafalksf");
 		lrcs.add("u2oiwyfhcnalksf");
-		lrc_view.initViews(lrcs);
+		lrc_view.initScrollViews(lrcs);
 	}
 
 }

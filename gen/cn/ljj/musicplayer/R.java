@@ -42,13 +42,12 @@ public final class R {
         public static final int song_pic_default=0x7f020012;
     }
     public static final class id {
-        public static final int action_add=0x7f080008;
-        public static final int action_search=0x7f080009;
-        public static final int action_settings=0x7f08000a;
+        public static final int action_add=0x7f080007;
+        public static final int action_search=0x7f080008;
+        public static final int action_settings=0x7f080009;
         public static final int buttonNext=0x7f080003;
         public static final int buttonPlay=0x7f080002;
         public static final int buttonPrev=0x7f080001;
-        public static final int lrc_mask=0x7f080007;
         public static final int lrc_view=0x7f080006;
         public static final int pager=0x7f080000;
         public static final int seekBar1=0x7f080004;
