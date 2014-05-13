@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -35,6 +36,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener{
 		mBtnPlay.setOnClickListener(this);
 	}
 	PlayingFragment playing = null;
+	PlayListFragment playlist = null;
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		public SectionsPagerAdapter(FragmentManager fm) {
@@ -44,9 +46,10 @@ public class BaseActivity extends FragmentActivity implements OnClickListener{
 		@Override
 		public Fragment getItem(int position) {
 			Fragment fragment = null;
-			if(position == 1)
-				fragment = new PlayListFragment();
-			else{
+			if(position == 1){
+				playlist = new PlayListFragment();
+				fragment = playlist;
+			}else{
 				playing = new PlayingFragment();
 				fragment = playing;
 			}
@@ -74,6 +77,25 @@ public class BaseActivity extends FragmentActivity implements OnClickListener{
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.base, menu);
 		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()){
+			case R.id.action_add:
+				break;
+			case R.id.action_search:
+				if(playlist.mSearchView.getVisibility() == View.VISIBLE){
+					playlist.mSearchView.setVisibility(View.GONE);
+				}else{
+					playlist.mSearchView.setVisibility(View.VISIBLE);
+				}
+				mViewPager.setCurrentItem(1);
+				break;
+			case R.id.action_settings:
+				break;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 	int i = 0;
 	@Override
