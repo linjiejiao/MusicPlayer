@@ -51,4 +51,11 @@ public class MusicInfo {
 		int sec = duration % 60;
 		return new String(min + ":" + sec / 10 + sec % 10);
 	}
+
+	@Override
+	public String toString() {
+		return "MusicInfo [name=" + name + ", path=" + path + ", durationStr="
+				+ durationStr + ", duration=" + duration + "]";
+	}
+	
 }

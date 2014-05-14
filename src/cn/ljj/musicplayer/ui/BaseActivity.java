@@ -12,20 +12,29 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 
-public class BaseActivity extends FragmentActivity implements OnClickListener{
+public class BaseActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener{
 	SectionsPagerAdapter mSectionsPagerAdapter;
 	ViewPager mViewPager;
 	Button mBtnNext = null;
 	Button mBtnPrev = null;
 	Button mBtnPlay = null;
+	TextView mTextTimePassed = null;
+	TextView mTextTimeAll = null;
+	SeekBar mSeekPlayProgress = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_base);
+		initViews();
+	}
+
+	private void initViews(){
 		mSectionsPagerAdapter = new SectionsPagerAdapter(
 				getSupportFragmentManager());
-
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
 		mBtnNext = (Button) findViewById(R.id.buttonNext);
@@ -34,7 +43,12 @@ public class BaseActivity extends FragmentActivity implements OnClickListener{
 		mBtnNext.setOnClickListener(this);
 		mBtnPrev.setOnClickListener(this);
 		mBtnPlay.setOnClickListener(this);
+		mTextTimePassed = (TextView) findViewById(R.id.text_time_passed);
+		mTextTimeAll = (TextView) findViewById(R.id.text_time_all);
+		mSeekPlayProgress = (SeekBar) findViewById(R.id.seek_play_progress);
+		mSeekPlayProgress.setOnSeekBarChangeListener(this);
 	}
+
 	PlayingFragment playing = null;
 	PlayListFragment playlist = null;
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
@@ -102,25 +116,40 @@ public class BaseActivity extends FragmentActivity implements OnClickListener{
 	public void onClick(View v) {
 		switch(v.getId()){
 			case R.id.buttonNext:
-				i++;
-				if(i>29){
-					i=0;
-				}
-				playing.lrc_view.highlight(i);
+//				i++;
+//				if(i>29){
+//					i=0;
+//				}
+//				playing.lrc_view.highlight(i);
 				break;
 			case R.id.buttonPlay:
-				i=0;
-				playing.lrc_view.highlight(i);
+//				i=0;
+//				playing.lrc_view.highlight(i);
 				break;
 			case R.id.buttonPrev:
-				i--;
-				if(i<0){
-					i=29;
-				}
-				playing.lrc_view.highlight(i);
+//				i--;
+//				if(i<0){
+//					i=29;
+//				}
+//				playing.lrc_view.highlight(i);
 				
 				break;
 		}
+	}
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean manual) {
+		if(manual){
+			
+		}
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar arg0) {
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar arg0) {
 	}
 
 }

@@ -6,8 +6,6 @@
     android:orientation="vertical"
     tools:context=".BaseActivity" >
 
-
-
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
@@ -85,6 +83,7 @@
             android:orientation="horizontal" >
 
             <TextView
+                android:id="@+id/text_time_passed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -93,13 +92,14 @@
                 android:textColor="#ffffff" />
 
             <SeekBar
-                android:id="@+id/seekBar1"
+                android:id="@+id/seek_play_progress"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1" />
 
             <TextView
+                android:id="@+id/text_time_all"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
