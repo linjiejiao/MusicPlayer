@@ -24,7 +24,6 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 		mRootView = inflater.inflate(R.layout.fragment_playing, container, false);
 		lrc_view = (LrcView)mRootView.findViewById(R.id.lrc_view);
 		lrc_view.init();
-//		lrc_view.setOnClickListener(this);
 		mSongPic = (ImageView) mRootView.findViewById(R.id.song_pic);
 		mSongPic.setOnClickListener(this);
 		setLrcs(null);
