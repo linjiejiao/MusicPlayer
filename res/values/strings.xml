@@ -6,5 +6,11 @@
     <string name="action_add">列表</string>
     <string name="action_search">搜索网络音乐</string>
     <string name="time_zero">00:00</string>
+    <string name="str_zero">0</string>
+    <string name="str_name">歌曲名</string>
+    <string name="str_artist">歌手</string>
+    <string name="str_album">专辑</string>
+    <string name="str_remove">从列表中移除</string>
+    <string name="str_operate">操作</string>
 
 </resources>

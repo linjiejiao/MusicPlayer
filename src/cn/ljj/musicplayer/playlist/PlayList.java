@@ -7,22 +7,33 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
+import android.content.Context;
+import android.util.Log;
+
 import cn.ljj.musicplayer.data.MusicInfo;
 
 public class PlayList {
 	public static final int SEQ_CIRCLE = 0;
 	public static final int SEQ_RAMDON = 1;
 	public static final int SEQ_SINGLE = 2;
-	private static PlayList mInstance = new PlayList();
+	private static PlayList mInstance = null;
 	private List<MusicInfo> mMusicList = new ArrayList<MusicInfo>();
 	private int mCurrentIndex = -1;
 	private int mPlaySequence = SEQ_CIRCLE;
+	private Context mContext = null;
+	PlayListPersister mPersister = null;
+	private String mPlayListName = null;
+	private String TAG = "PlayList";
 
-	private PlayList() {
-
+	private PlayList(Context context) {
+		mContext = context;
+		mPersister = new PlayListPersister(mContext);
 	}
 
-	public static PlayList getPlayList() {
+	public static PlayList getPlayList(Context context) {
+		if(mInstance == null){
+			mInstance = new PlayList(context);
+		}
 		return mInstance;
 	}
 
@@ -94,18 +105,28 @@ public class PlayList {
 		return mMusicList;
 	}
 
-	public void setMusicList(List<MusicInfo> list) {
+	public void setMusicList(List<MusicInfo> list ,String listNme) {
 		mMusicList.clear();
 		mMusicList.addAll(list);
 		mCurrentIndex = 0;
+		mPlayListName = listNme;
 		sortList();
 	}
 
 	public void add(MusicInfo music) {
+		Log.e(TAG , "add music="+music);
 		mMusicList.add(music);
+		if(mPlayListName != null){
+			mPersister.persist(music, mPlayListName);
+		}
 	}
 
 	public void remove(int index) {
+		Log.e(TAG , "remove index="+index);
+		if(mPlayListName != null){
+			long deleteId = mMusicList.get(index).getId();
+			mPersister.removeMusic(deleteId);
+		}
 		mMusicList.remove(index);
 		if (index == mCurrentIndex) {
 			mCurrentIndex = 0;
@@ -115,6 +136,7 @@ public class PlayList {
 	}
 
 	public void removeAll() {
+		Log.e(TAG , "removeAll");
 		mMusicList.clear();
 		mCurrentIndex = -1;
 	}
@@ -149,5 +171,23 @@ public class PlayList {
 		}
 	};
 
+	public int load(String listName){
+		mPlayListName = listName;
+		setMusicList(mPersister.load(listName), listName);
+		return mMusicList.size();
+	}
 
+	public int loadFromMediaStore(){
+		setMusicList(mPersister.loadFromMediaStore(), null);
+		return mMusicList.size();
+	}
+
+	public int persist(String listName, boolean cover){
+		return mPersister.persist(mMusicList, listName, cover);
+	}
+
+	public int deletePlayList(String listName){
+		Log.e(TAG , "deletePlayList listName="+listName);
+		return mPersister.deletePlayList(listName);
+	}
 }
