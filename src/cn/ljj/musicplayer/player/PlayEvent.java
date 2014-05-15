@@ -1,4 +1,4 @@
-package cn.ljj.musicplayer.player.state;
+package cn.ljj.musicplayer.player;
 
 public class PlayEvent {
 

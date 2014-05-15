@@ -1,12 +1,11 @@
-package cn.ljj.musicplayer.player.state;
+package cn.ljj.musicplayer.player;
 
 import android.util.Log;
 import cn.ljj.musicplayer.data.MusicInfo;
-import cn.ljj.musicplayer.player.Player;
 
-public class StatePlaying extends AbstractState {
+public class StateStop extends AbstractState {
 
-	public StatePlaying(Player player) {
+	public StateStop(Player player) {
 		super(player);
 	}
 
@@ -15,25 +14,27 @@ public class StatePlaying extends AbstractState {
 		AbstractState nextState = null;
 		switch (event.getEventCode()) {
 			case PlayEvent.EVENT_PLAY:
-				nextState = this;
+				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
+					nextState = mPlayer.getStatePlaying();
+				}
 				break;
 			case PlayEvent.EVENT_STOP:
-				if (mPlayer.stop()) {
-					nextState = mPlayer.getStateStop();
-				}
+				nextState = this;
 				break;
 			case PlayEvent.EVENT_PREV:
 				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
-					nextState = this;
+					nextState = mPlayer.getStatePlaying();
 				}
 				break;
 			case PlayEvent.EVENT_NEXT:
 				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
-					nextState = this;
+					nextState = mPlayer.getStatePlaying();
 				}
 				break;
 			case PlayEvent.EVENT_RELOADLIST:
-				nextState = mPlayer.getStateIdel();
+				if (mPlayer.stop()) {
+					nextState = mPlayer.getStateIdel();
+				}
 				break;
 			case PlayEvent.EVENT_SEEK:
 				if (mPlayer.seek(event.getIntValue())) {
@@ -41,7 +42,7 @@ public class StatePlaying extends AbstractState {
 				}
 				break;
 			default:
-				Log.e("StatePlaying",
+				Log.e("StateStop",
 						"processEvent: invalid event = " + event.toString());
 		}
 		if (nextState != null) {

@@ -6,6 +6,8 @@ import java.util.List;
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
+import cn.ljj.musicplayer.player.PlayEvent;
+import cn.ljj.musicplayer.player.Player;
 import cn.ljj.musicplayer.playlist.PlayList;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -29,16 +31,19 @@ public class PlayListFragment extends Fragment implements OnItemClickListener, O
 	ListView mPlayListView = null;
 	LinearLayout mSearchView = null;
 	PlayList mPlaylist = null;
+	Player mPlayer = null;
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		mRootView = inflater.inflate(R.layout.fragment_playlist, container, false);
+		mPlayer =  Player.getPlayer();
 		mPlayListView = (ListView) mRootView.findViewById(R.id.playlist_view);
 		mSearchView = (LinearLayout) mRootView.findViewById(R.id.search_view);
 		mPlaylist = PlayList.getPlayList(getActivity());
 		mPlaylist.load("123");
 		if(mPlaylist.isEmpty()){
 			mPlaylist.loadFromMediaStore();
+			mPlaylist.persist("123", true);
 		}
 		SimpleAdapter listAdapter = prepareListDate(mPlaylist.getMusicList());
 		mPlayListView.setAdapter(listAdapter);
@@ -77,7 +82,10 @@ public class PlayListFragment extends Fragment implements OnItemClickListener, O
 
 	@Override
 	public void onItemClick(AdapterView<?> adapterView, View view, int index, long arg3) {
-		
+		PlayEvent event = new PlayEvent();
+		event.setEventCode(PlayEvent.EVENT_PLAY);
+		event.setObjectValue(mPlaylist.get(index));
+		mPlayer.handelEvent(event);
 	}
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,

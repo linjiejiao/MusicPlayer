@@ -48,6 +48,7 @@ public class PlayListPersister {
 				cursor.close();
 			}
 		}
+		Log.e(TAG, "load list=" + list);
 		return list;
 	}
 

@@ -1,68 +1,96 @@
 package cn.ljj.musicplayer.player;
 
+import android.media.MediaPlayer;
 import android.util.Log;
 import cn.ljj.musicplayer.data.MusicInfo;
-import cn.ljj.musicplayer.player.state.AbstractState;
-import cn.ljj.musicplayer.player.state.PlayEvent;
-import cn.ljj.musicplayer.player.state.StateError;
-import cn.ljj.musicplayer.player.state.StateIdel;
-import cn.ljj.musicplayer.player.state.StatePlaying;
-import cn.ljj.musicplayer.player.state.StateStop;
 
 public class Player {
 	String TAG = "Player";
-	private AbstractState mState = null;
 	StatePlaying statePlaying = new StatePlaying(this);
 	StateStop stateStop = new StateStop(this);
 	StateIdel stateIdel = new StateIdel(this);
 	StateError stateError = new StateError(this);
+	private AbstractState mState = stateIdel;
+	MediaPlayer mMediaPlayer = null;
+	private static  Player sInstance = new Player();
+	
+	private Player(){
+		mMediaPlayer = new MediaPlayer();
+	}
 
-	public StateError getStateError() {
+	public static Player getPlayer(){
+		return sInstance;
+	}
+	
+	protected StateError getStateError() {
 		return stateError;
 	}
 
-	public StatePlaying getStatePlaying() {
+	protected StatePlaying getStatePlaying() {
 		return statePlaying;
 	}
 
-	public StateStop getStateStop() {
+	protected StateStop getStateStop() {
 		return stateStop;
 	}
 
-	public StateIdel getStateIdel() {
+	protected StateIdel getStateIdel() {
 		return stateIdel;
 	}
 
-	public AbstractState getState() {
+	protected AbstractState getState() {
 		return mState;
 	}
 
-	public void setState(AbstractState state) {
+	protected void setState(AbstractState state) {
 		Log.e(TAG, "setState state="+state);
 		mState = state;
 	}
 
-	public boolean play(MusicInfo music) {
+	protected boolean play(MusicInfo music) {
 		Log.e(TAG, "play music=" + music);
+		try {
+			reset() ;
+			mMediaPlayer.setDataSource(music.getMusicPath());
+			mMediaPlayer.prepare();
+			mMediaPlayer.start();
+		}catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 		return true;
 	}
 
-	public boolean stop() {
+	protected boolean stop() {
 		Log.e(TAG, "stop");
+		try {
+			mMediaPlayer.pause();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 		return true;
 	}
 
-	public boolean seek(int pos) {
+	protected boolean seek(int pos) {
 		Log.e(TAG, "seek pos=" + pos);
+		try {
+			int time = (mMediaPlayer.getDuration() * pos)/100;
+			mMediaPlayer.seekTo(time);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 		return true;
 	}
 
-	public boolean reset() {
+	protected boolean reset() {
 		Log.e(TAG, "reset");
+		mMediaPlayer.reset();
 		return true;
 	}
 
-	public boolean handelEvent(PlayEvent event){
+	public synchronized boolean handelEvent(PlayEvent event){
 		return mState.processEvent(event);
 	}
 }

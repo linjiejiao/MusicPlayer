@@ -1,8 +1,7 @@
-package cn.ljj.musicplayer.player.state;
+package cn.ljj.musicplayer.player;
 
 import android.util.Log;
 import cn.ljj.musicplayer.data.MusicInfo;
-import cn.ljj.musicplayer.player.Player;
 
 public class StateError extends AbstractState {
 

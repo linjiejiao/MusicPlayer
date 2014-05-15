@@ -1,6 +1,5 @@
-package cn.ljj.musicplayer.player.state;
+package cn.ljj.musicplayer.player;
 
-import cn.ljj.musicplayer.player.Player;
 
 public abstract class AbstractState {
 	protected Player mPlayer = null;

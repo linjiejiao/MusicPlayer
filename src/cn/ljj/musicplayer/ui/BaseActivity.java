@@ -1,7 +1,11 @@
 package cn.ljj.musicplayer.ui;
 
 import cn.ljj.musicplayer.R;
+import cn.ljj.musicplayer.player.PlayEvent;
+import cn.ljj.musicplayer.player.Player;
+import cn.ljj.musicplayer.playlist.PlayList;
 import android.support.v4.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -25,10 +29,14 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	TextView mTextTimePassed = null;
 	TextView mTextTimeAll = null;
 	SeekBar mSeekPlayProgress = null;
+	Player mPlayer = null;
+	PlayList mPlaylist = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_base);
+		mPlayer =  Player.getPlayer();
+		mPlaylist = PlayList.getPlayList(this);
 		initViews();
 	}
 
@@ -60,7 +68,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		@Override
 		public Fragment getItem(int position) {
 			Fragment fragment = null;
-			if(position == 1){
+			if(position == 0){
 				playlist = new PlayListFragment();
 				fragment = playlist;
 			}else{
@@ -114,25 +122,31 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	int i = 0;
 	@Override
 	public void onClick(View v) {
+		PlayEvent event = new PlayEvent();
 		switch(v.getId()){
 			case R.id.buttonNext:
-//				i++;
-//				if(i>29){
-//					i=0;
-//				}
-//				playing.lrc_view.highlight(i);
+				event.setEventCode(PlayEvent.EVENT_NEXT);
+				event.setObjectValue(mPlaylist.getNext());
+				mPlayer.handelEvent(event);
 				break;
 			case R.id.buttonPlay:
-//				i=0;
-//				playing.lrc_view.highlight(i);
+				if(!this.equals(mBtnPlay.getTag())){
+					mBtnPlay.setBackgroundResource(R.drawable.button_pause);
+					mBtnPlay.setTag(this);
+					event.setEventCode(PlayEvent.EVENT_PLAY);
+					event.setObjectValue(mPlaylist.get());
+					mPlayer.handelEvent(event);
+				}else{
+					mBtnPlay.setBackgroundResource(R.drawable.button_play);
+					mBtnPlay.setTag(null);
+					event.setEventCode(PlayEvent.EVENT_STOP);
+					mPlayer.handelEvent(event);
+				}
 				break;
 			case R.id.buttonPrev:
-//				i--;
-//				if(i<0){
-//					i=29;
-//				}
-//				playing.lrc_view.highlight(i);
-				
+				event.setEventCode(PlayEvent.EVENT_PREV);
+				event.setObjectValue(mPlaylist.getPrev());
+				mPlayer.handelEvent(event);
 				break;
 		}
 	}
@@ -140,7 +154,10 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean manual) {
 		if(manual){
-			
+			PlayEvent event = new PlayEvent();
+			event.setEventCode(PlayEvent.EVENT_SEEK);
+			event.setIntValue(progress);
+			mPlayer.handelEvent(event);
 		}
 	}
 
