@@ -12,8 +12,11 @@
         android:visibility="gone" >
 
         <EditText
+            android:id="@+id/edit_search_keys"
+            android:hint="@string/str_search_hint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@android:drawable/editbox_background_normal"
             android:layout_weight="1"/>
 
         <Button

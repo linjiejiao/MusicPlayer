@@ -42,23 +42,24 @@ public final class R {
         public static final int song_pic_default=0x7f020012;
     }
     public static final class id {
-        public static final int action_add=0x7f080010;
-        public static final int action_search=0x7f080011;
-        public static final int action_settings=0x7f080012;
+        public static final int action_add=0x7f080011;
+        public static final int action_search=0x7f080012;
+        public static final int action_settings=0x7f080013;
         public static final int buttonNext=0x7f080003;
         public static final int buttonPlay=0x7f080002;
         public static final int buttonPrev=0x7f080001;
+        public static final int edit_search_keys=0x7f08000a;
         public static final int lrc_view=0x7f080008;
         public static final int pager=0x7f080000;
-        public static final int playlist_view=0x7f08000a;
+        public static final int playlist_view=0x7f08000b;
         public static final int search_view=0x7f080009;
         public static final int seek_play_progress=0x7f080005;
         public static final int song_pic=0x7f080007;
-        public static final int text_album=0x7f08000f;
-        public static final int text_artist=0x7f08000e;
-        public static final int text_duration=0x7f08000d;
-        public static final int text_index=0x7f08000b;
-        public static final int text_name=0x7f08000c;
+        public static final int text_album=0x7f080010;
+        public static final int text_artist=0x7f08000f;
+        public static final int text_duration=0x7f08000e;
+        public static final int text_index=0x7f08000c;
+        public static final int text_name=0x7f08000d;
         public static final int text_time_all=0x7f080006;
         public static final int text_time_passed=0x7f080004;
     }
@@ -81,6 +82,7 @@ public final class R {
         public static final int str_name=0x7f050006;
         public static final int str_operate=0x7f05000a;
         public static final int str_remove=0x7f050009;
+        public static final int str_search_hint=0x7f05000b;
         public static final int str_zero=0x7f050005;
         public static final int time_zero=0x7f050004;
     }

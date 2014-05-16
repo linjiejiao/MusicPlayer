@@ -1,6 +1,7 @@
 package cn.ljj.musicplayer.data;
 
 public class MusicInfo {
+	public boolean isLocal = true;
 	private String name = null;
 	private String artist = null;
 	private String album = null;
