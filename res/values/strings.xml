@@ -12,5 +12,6 @@
     <string name="str_album">专辑</string>
     <string name="str_remove">从列表中移除</string>
     <string name="str_operate">操作</string>
+    <string name="str_search_hint">王力宏</string>
 
 </resources>
