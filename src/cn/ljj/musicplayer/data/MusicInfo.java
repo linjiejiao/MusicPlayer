@@ -12,6 +12,9 @@ public class MusicInfo {
 	private int duration = 0;
 	private long _id = -1;
 
+	public MusicInfo() {
+	}
+
 	public MusicInfo(String name, String path) {
 		this.name = name;
 		this.musicPath = path;

@@ -2,8 +2,8 @@ package cn.ljj.musicplayer.playlist;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -11,7 +11,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.MediaStore;
-import android.util.Log;
 
 public class PlayListPersister {
 	private Context mContext = null;
@@ -24,7 +23,7 @@ public class PlayListPersister {
 	}
 
 	public List<MusicInfo> load(String listName) {
-		Log.d(TAG, "load listName=" + listName);
+		Logger.d(TAG, "load listName=" + listName);
 		List<MusicInfo> list = new ArrayList<MusicInfo>();
 		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
 				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
@@ -48,7 +47,7 @@ public class PlayListPersister {
 				cursor.close();
 			}
 		}
-		Log.e(TAG, "load list=" + list);
+		Logger.e(TAG, "load list=" + list);
 		return list;
 	}
 
@@ -88,7 +87,7 @@ public class PlayListPersister {
 	}
 
 	public int persist(List<MusicInfo> list, String listName, boolean cover) {
-		Log.d(TAG, "persist list=" + list + "; listName=" + listName
+		Logger.d(TAG, "persist list=" + list + "; listName=" + listName
 				+ "; cover=" + cover);
 		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
 				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
@@ -154,7 +153,7 @@ public class PlayListPersister {
 	}
 
 	public List<MusicInfo> loadFromMediaStore() {
-		Log.d(TAG, "loadFromMediaStore");
+		Logger.d(TAG, "loadFromMediaStore");
 		List<MusicInfo> list = new ArrayList<MusicInfo>();
 		ContentResolver cr = mContext.getContentResolver();
 		Cursor playlistCursor = null;
@@ -202,7 +201,7 @@ public class PlayListPersister {
 	}
 
 	public Long persist(MusicInfo music, String listName) {
-		Log.d(TAG, "persist music=" + music + "; listName=" + listName);
+		Logger.d(TAG, "persist music=" + music + "; listName=" + listName);
 		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
 				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
 		long musicId = -1;
@@ -240,7 +239,7 @@ public class PlayListPersister {
 	}
 
 	public int removeMusic(long id) {
-		Log.d(TAG, "removeMusic id=" + id);
+		Logger.d(TAG, "removeMusic id=" + id);
 		if (id == -1) {
 			return -1;
 		}
@@ -248,7 +247,7 @@ public class PlayListPersister {
 	}
 
 	public int deletePlayList(String listName) {
-		Log.d(TAG, "deletePlayList listName=" + listName);
+		Logger.d(TAG, "deletePlayList listName=" + listName);
 		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
 				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
 		int ret = -1;
@@ -303,7 +302,7 @@ public class PlayListPersister {
 				cursor.close();
 			}
 		}
-		Log.d(TAG, "getAllSavedPlayList list=" + list);
+		Logger.d(TAG, "getAllSavedPlayList list=" + list);
 		return list;
 	}
 }

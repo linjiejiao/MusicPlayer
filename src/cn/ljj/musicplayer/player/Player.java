@@ -1,8 +1,8 @@
 package cn.ljj.musicplayer.player;
 
 import android.media.MediaPlayer;
-import android.util.Log;
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
 
 public class Player {
 	String TAG = "Player";
@@ -43,12 +43,12 @@ public class Player {
 	}
 
 	protected void setState(AbstractState state) {
-		Log.e(TAG, "setState state="+state);
+		Logger.e(TAG, "setState state="+state);
 		mState = state;
 	}
 
 	protected boolean play(MusicInfo music) {
-		Log.e(TAG, "play music=" + music);
+		Logger.e(TAG, "play music=" + music);
 		try {
 			reset() ;
 			mMediaPlayer.setDataSource(music.getMusicPath());
@@ -62,7 +62,7 @@ public class Player {
 	}
 
 	protected boolean stop() {
-		Log.e(TAG, "stop");
+		Logger.e(TAG, "stop");
 		try {
 			mMediaPlayer.pause();
 		} catch (Exception e) {
@@ -73,7 +73,7 @@ public class Player {
 	}
 
 	protected boolean seek(int pos) {
-		Log.e(TAG, "seek pos=" + pos);
+		Logger.e(TAG, "seek pos=" + pos);
 		try {
 			int time = (mMediaPlayer.getDuration() * pos)/100;
 			mMediaPlayer.seekTo(time);
@@ -85,7 +85,7 @@ public class Player {
 	}
 
 	protected boolean reset() {
-		Log.e(TAG, "reset");
+		Logger.e(TAG, "reset");
 		mMediaPlayer.reset();
 		return true;
 	}

@@ -8,21 +8,23 @@
         android:id="@+id/search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone" >
+        android:orientation="horizontal" >
 
         <EditText
             android:id="@+id/edit_search_keys"
             android:hint="@string/str_search_hint"
+            android:text="@string/str_search_hint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:background="@android:drawable/editbox_background_normal"
             android:layout_weight="1"/>
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="search" />
+            android:id="@+id/btn_search"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/button_search"
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
     <ListView

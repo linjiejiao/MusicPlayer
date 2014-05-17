@@ -6,6 +6,9 @@ public class BaiduMusicInfo extends MusicInfo{
 		super(name, path);
 	}
 
+	public BaiduMusicInfo() {
+	}
+
 	private String mSongId = null;
 	private String mAllArtistId = null;
 	private String mAlbumId = null;

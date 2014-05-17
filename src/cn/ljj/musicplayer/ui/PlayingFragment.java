@@ -2,11 +2,10 @@ package cn.ljj.musicplayer.ui;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import cn.ljj.musicplayer.R;
+import cn.ljj.musicplayer.database.Logger;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -43,7 +42,7 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 			}
 			break;
 		}
-		Log.e("onClick", "v=" + v.getId());
+		Logger.e("onClick", "v=" + v.getId());
 	}
 
 	private void setLrcs(List<String> lrcs) {

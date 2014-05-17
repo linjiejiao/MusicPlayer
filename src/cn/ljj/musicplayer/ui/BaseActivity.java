@@ -5,7 +5,6 @@ import cn.ljj.musicplayer.player.PlayEvent;
 import cn.ljj.musicplayer.player.Player;
 import cn.ljj.musicplayer.playlist.PlayList;
 import android.support.v4.app.Fragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -107,12 +106,12 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			case R.id.action_add:
 				break;
 			case R.id.action_search:
-				if(playlist.mSearchView.getVisibility() == View.VISIBLE){
+				if(playlist.mSearchView.getVisibility() == View.VISIBLE && mViewPager.getCurrentItem() == 0){
 					playlist.mSearchView.setVisibility(View.GONE);
 				}else{
 					playlist.mSearchView.setVisibility(View.VISIBLE);
+					mViewPager.setCurrentItem(0);
 				}
-				mViewPager.setCurrentItem(1);
 				break;
 			case R.id.action_settings:
 				break;

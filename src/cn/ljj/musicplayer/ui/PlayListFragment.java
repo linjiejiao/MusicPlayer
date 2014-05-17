@@ -5,7 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
+import cn.ljj.musicplayer.files.BaiduMusicSearch;
+import cn.ljj.musicplayer.files.BaiduMusicSearch.SeachCallback;
+import cn.ljj.musicplayer.files.Defines;
 import cn.ljj.musicplayer.player.PlayEvent;
 import cn.ljj.musicplayer.player.Player;
 import cn.ljj.musicplayer.playlist.PlayList;
@@ -16,40 +20,56 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
-public class PlayListFragment extends Fragment implements OnItemClickListener, OnMenuItemClickListener {
+public class PlayListFragment extends Fragment implements Defines, OnItemClickListener, OnMenuItemClickListener, OnClickListener, SeachCallback {
 	static final int MENU_DELETE = 0;
 	static final int MENU_EDIT = 1;
+	static String TAG = "PlayListFragment";
 	View mRootView = null;
 	ListView mPlayListView = null;
 	LinearLayout mSearchView = null;
+	Button mBtnSearch = null;
+	EditText mEditSearch = null;
 	PlayList mPlaylist = null;
 	Player mPlayer = null;
+	BaiduMusicSearch mSearcher = null;
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		mRootView = inflater.inflate(R.layout.fragment_playlist, container, false);
 		mPlayer =  Player.getPlayer();
-		mPlayListView = (ListView) mRootView.findViewById(R.id.playlist_view);
-		mSearchView = (LinearLayout) mRootView.findViewById(R.id.search_view);
 		mPlaylist = PlayList.getPlayList(getActivity());
 		mPlaylist.load("123");
 		if(mPlaylist.isEmpty()){
 			mPlaylist.loadFromMediaStore();
 			mPlaylist.persist("123", true);
 		}
+		mSearcher = new BaiduMusicSearch();
+		mSearcher.setCallBack(this);
+		initViews();
+		return mRootView;
+	}
+
+	private void initViews(){
+		mPlayListView = (ListView) mRootView.findViewById(R.id.playlist_view);
+		mSearchView = (LinearLayout) mRootView.findViewById(R.id.search_view);
+		mBtnSearch = (Button) mRootView.findViewById(R.id.btn_search);
+		mEditSearch = (EditText) mRootView.findViewById(R.id.edit_search_keys);
+		mBtnSearch.setOnClickListener(this);
 		SimpleAdapter listAdapter = prepareListDate(mPlaylist.getMusicList());
 		mPlayListView.setAdapter(listAdapter);
 		mPlayListView.setOnItemClickListener(this);
 		mPlayListView.setOnCreateContextMenuListener(this);
-		return mRootView;
 	}
 
 	private SimpleAdapter prepareListDate(List<MusicInfo> data){
@@ -82,6 +102,7 @@ public class PlayListFragment extends Fragment implements OnItemClickListener, O
 
 	@Override
 	public void onItemClick(AdapterView<?> adapterView, View view, int index, long arg3) {
+		Logger.e(TAG , "onItemClick index="+index);
 		PlayEvent event = new PlayEvent();
 		event.setEventCode(PlayEvent.EVENT_PLAY);
 		event.setObjectValue(mPlaylist.get(index));
@@ -117,4 +138,32 @@ public class PlayListFragment extends Fragment implements OnItemClickListener, O
 		mPlayListView.setAdapter(listAdapter);
 		mPlayListView.setSelection(id-1);
 	}
+
+	private void search(String keys){
+		mSearcher.search(keys);
+	}
+
+	@Override
+	public void onSearchResult(final List<MusicInfo> resualt) {
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				SimpleAdapter listAdapter = prepareListDate(resualt);
+				mPlayListView.setAdapter(listAdapter);
+				mPlaylist.setMusicList(resualt, null);
+			}
+		});
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()){
+			case R.id.btn_search:
+					search(mEditSearch.getText().toString());
+				break;
+			default:
+				
+		}
+	}
+
 }

@@ -6,11 +6,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
-
 import android.content.Context;
-import android.util.Log;
-
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
 
 public class PlayList {
 	public static final int SEQ_CIRCLE = 0;
@@ -110,11 +108,13 @@ public class PlayList {
 		mMusicList.addAll(list);
 		mCurrentIndex = 0;
 		mPlayListName = listNme;
-		sortList();
+		if(listNme != null){
+			sortList();
+		}
 	}
 
 	public void add(MusicInfo music) {
-		Log.e(TAG , "add music="+music);
+		Logger.e(TAG , "add music="+music);
 		mMusicList.add(music);
 		if(mPlayListName != null){
 			mPersister.persist(music, mPlayListName);
@@ -122,7 +122,7 @@ public class PlayList {
 	}
 
 	public void remove(int index) {
-		Log.e(TAG , "remove index="+index);
+		Logger.e(TAG , "remove index="+index);
 		if(mPlayListName != null){
 			long deleteId = mMusicList.get(index).getId();
 			mPersister.removeMusic(deleteId);
@@ -136,7 +136,7 @@ public class PlayList {
 	}
 
 	public void removeAll() {
-		Log.e(TAG , "removeAll");
+		Logger.e(TAG , "removeAll");
 		mMusicList.clear();
 		mCurrentIndex = -1;
 	}
@@ -187,7 +187,7 @@ public class PlayList {
 	}
 
 	public int deletePlayList(String listName){
-		Log.e(TAG , "deletePlayList listName="+listName);
+		Logger.e(TAG , "deletePlayList listName="+listName);
 		return mPersister.deletePlayList(listName);
 	}
 }
