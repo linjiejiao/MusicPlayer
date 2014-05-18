@@ -1,11 +1,21 @@
 package cn.ljj.musicplayer.ui;
 
 import cn.ljj.musicplayer.R;
-import cn.ljj.musicplayer.player.PlayEvent;
-import cn.ljj.musicplayer.player.Player;
+import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.data.StaticUtils;
+import cn.ljj.musicplayer.database.Logger;
+import cn.ljj.musicplayer.player.service.INotify;
+import cn.ljj.musicplayer.player.service.NotifyImpl;
+import cn.ljj.musicplayer.player.service.PlayService;
 import cn.ljj.musicplayer.playlist.PlayList;
 import android.support.v4.app.Fragment;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -20,6 +30,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 public class BaseActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener{
+	public static  String TAG = "BaseActivity";
 	SectionsPagerAdapter mSectionsPagerAdapter;
 	ViewPager mViewPager;
 	Button mBtnNext = null;
@@ -28,15 +39,16 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	TextView mTextTimePassed = null;
 	TextView mTextTimeAll = null;
 	SeekBar mSeekPlayProgress = null;
-	Player mPlayer = null;
+//	Player mPlayer = null;
 	PlayList mPlaylist = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_base);
-		mPlayer =  Player.getPlayer();
+//		mPlayer =  Player.getPlayer();
 		mPlaylist = PlayList.getPlayList(this);
 		initViews();
+		bindService();
 	}
 
 	private void initViews(){
@@ -69,6 +81,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			Fragment fragment = null;
 			if(position == 0){
 				playlist = new PlayListFragment();
+				playlist.setCallback(mCallback);
 				fragment = playlist;
 			}else{
 				playing = new PlayingFragment();
@@ -92,6 +105,16 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			}
 			return "other";
 		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		unbindService(mSerConn);
+		Intent service = new Intent();
+		service.setClass(this, PlayService.class);
+		stopService(service);
+		Logger.i(TAG, "onDestroy");
+		super.onDestroy();
 	}
 
 	@Override
@@ -121,31 +144,30 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	int i = 0;
 	@Override
 	public void onClick(View v) {
-		PlayEvent event = new PlayEvent();
 		switch(v.getId()){
 			case R.id.buttonNext:
-				event.setEventCode(PlayEvent.EVENT_NEXT);
-				event.setObjectValue(mPlaylist.getNext());
-				mPlayer.handelEvent(event);
+//				sendCmd(NotifyImpl.CMD_NEXT_EVENT, -1, 0, null, mPlaylist.getNext());
+				sendCmd(NotifyImpl.CMD_PLAY_EVENT, -1, 0, null, mPlaylist.getNext());
 				break;
 			case R.id.buttonPlay:
-				if(!this.equals(mBtnPlay.getTag())){
-					mBtnPlay.setBackgroundResource(R.drawable.button_pause);
-					mBtnPlay.setTag(this);
-					event.setEventCode(PlayEvent.EVENT_PLAY);
-					event.setObjectValue(mPlaylist.get());
-					mPlayer.handelEvent(event);
+				if(!BaseActivity.this.equals(mBtnPlay.getTag())){
+					boolean ret = sendCmd(NotifyImpl.CMD_PLAY_EVENT, mPlaylist.getProgress(), 0, null, mPlaylist.get());
+					if(ret){
+						mBtnPlay.setBackgroundResource(R.drawable.button_pause);
+						mBtnPlay.setTag(BaseActivity.this);
+					}
+					
 				}else{
-					mBtnPlay.setBackgroundResource(R.drawable.button_play);
-					mBtnPlay.setTag(null);
-					event.setEventCode(PlayEvent.EVENT_STOP);
-					mPlayer.handelEvent(event);
+					boolean ret = sendCmd(NotifyImpl.CMD_STOP_EVENT, 0, 0,null,null);
+					if(ret){
+						mBtnPlay.setBackgroundResource(R.drawable.button_play);
+						mBtnPlay.setTag(null);
+					}
 				}
 				break;
 			case R.id.buttonPrev:
-				event.setEventCode(PlayEvent.EVENT_PREV);
-				event.setObjectValue(mPlaylist.getPrev());
-				mPlayer.handelEvent(event);
+//				sendCmd(NotifyImpl.CMD_PREV_EVENT, -1, 0, null, mPlaylist.getPrev());
+				sendCmd(NotifyImpl.CMD_PLAY_EVENT, -1, 0, null, mPlaylist.getPrev());
 				break;
 		}
 	}
@@ -153,10 +175,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean manual) {
 		if(manual){
-			PlayEvent event = new PlayEvent();
-			event.setEventCode(PlayEvent.EVENT_SEEK);
-			event.setIntValue(progress);
-			mPlayer.handelEvent(event);
+			sendCmd(NotifyImpl.CMD_SEEK_EVENT, progress, 0, null, null);
 		}
 	}
 
@@ -168,4 +187,96 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	public void onStopTrackingTouch(SeekBar arg0) {
 	}
 
+	private INotify mService = null;
+	private ServiceConnection mSerConn = new ServiceConnection() {
+		
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			mService = null;
+		}
+		
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			mService = (INotify) INotify.Stub.asInterface(service);
+			try {
+				mService.setCallback(mCallback);
+				Logger.i(TAG, "onServiceConnected mService.setCallback(mCallback);");
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	};
+
+	private INotify mCallback = new NotifyImpl(){
+		@Override
+		public void setCallback(INotify callback) throws RemoteException {
+			super.setCallback(callback);
+		}
+
+		@Override
+		public int onNotify(int cmd, final int intValue, final long longValue, String str, MusicInfo music)
+				throws RemoteException {
+			switch(cmd){
+				case CMD_PLAY_EVENT:
+					boolean ret = sendCmd(cmd, mPlaylist.getProgress(), longValue, str, music);
+					if(ret){
+						mBtnPlay.setBackgroundResource(R.drawable.button_pause);
+						mBtnPlay.setTag(BaseActivity.this);
+					}else{
+						return RET_ERROR;
+					}
+					break;
+				case CMD_STOP_EVENT:
+//				case CMD_NEXT_EVENT:
+//				case CMD_PREV_EVENT:
+				case CMD_SEEK_EVENT:
+					break;
+				case CMD_UPDATE_PROGRESS:
+					mPlaylist.setProgress(intValue);
+					final int progress = (int) ((intValue*100)/longValue);
+//					Logger.d(TAG, "CMD_UPDATE_PROGRESS=" + progress);
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							mTextTimeAll.setText(StaticUtils.getDispTime((int)longValue));
+							mTextTimePassed.setText(StaticUtils.getDispTime(intValue));
+							mSeekPlayProgress.setProgress(progress);
+						}
+					});
+					break;
+				case CMD_PLAY_REACH_END:
+//					sendCmd(NotifyImpl.CMD_NEXT_EVENT, -1, 0, null, mPlaylist.getNext());
+					sendCmd(NotifyImpl.CMD_PLAY_EVENT, -1, 0, null, mPlaylist.getNext());
+					Logger.i(TAG, "CMD_PLAY_REACH_END");
+					break;
+				case CMD_REPORT_STATUS:
+					break;
+				default :
+					return RET_INVALID;
+			}
+			return super.onNotify(cmd, intValue, longValue, str,music);
+		}
+	};
+	
+	private void bindService(){
+		Intent service = new Intent();
+		service.setClass(getBaseContext(), PlayService.class);
+		bindService(service, mSerConn, Service.BIND_AUTO_CREATE );
+	}
+
+	private boolean sendCmd(int cmd, int intValue, long longValue, String str, MusicInfo music){
+		boolean ret = false;
+		if(mService == null){
+			bindService();
+			return ret;
+		}
+		try {
+			if(mService.onNotify(cmd, intValue, longValue, str, music) == NotifyImpl.RET_OK){
+				ret = true;
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
 }

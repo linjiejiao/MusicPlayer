@@ -18,6 +18,7 @@ public class PlayList {
 	private List<MusicInfo> mMusicList = new ArrayList<MusicInfo>();
 	private int mCurrentIndex = -1;
 	private int mPlaySequence = SEQ_CIRCLE;
+	private int mProgress = -1;
 	private Context mContext = null;
 	PlayListPersister mPersister = null;
 	private String mPlayListName = null;
@@ -189,5 +190,13 @@ public class PlayList {
 	public int deletePlayList(String listName){
 		Logger.e(TAG , "deletePlayList listName="+listName);
 		return mPersister.deletePlayList(listName);
+	}
+
+	public int getProgress() {
+		return mProgress;
+	}
+
+	public void setProgress(int progress) {
+		mProgress = progress;
 	}
 }

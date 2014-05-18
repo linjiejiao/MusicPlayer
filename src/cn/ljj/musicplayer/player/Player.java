@@ -1,6 +1,7 @@
 package cn.ljj.musicplayer.player;
 
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
 
@@ -12,16 +13,11 @@ public class Player {
 	StateError stateError = new StateError(this);
 	private AbstractState mState = stateIdel;
 	MediaPlayer mMediaPlayer = null;
-	private static  Player sInstance = new Player();
 	
-	private Player(){
+	public Player(){
 		mMediaPlayer = new MediaPlayer();
 	}
 
-	public static Player getPlayer(){
-		return sInstance;
-	}
-	
 	protected StateError getStateError() {
 		return stateError;
 	}
@@ -43,16 +39,18 @@ public class Player {
 	}
 
 	protected void setState(AbstractState state) {
-		Logger.e(TAG, "setState state="+state);
+		Logger.d(TAG, "setState state="+state);
 		mState = state;
 	}
 
-	protected boolean play(MusicInfo music) {
-		Logger.e(TAG, "play music=" + music);
+	protected boolean play(MusicInfo music, boolean reset) {
+		Logger.d(TAG, "play music=" + music);
 		try {
-			reset() ;
-			mMediaPlayer.setDataSource(music.getMusicPath());
-			mMediaPlayer.prepare();
+			if(reset){
+				reset() ;
+				mMediaPlayer.setDataSource(music.getMusicPath());
+				mMediaPlayer.prepare();
+			}
 			mMediaPlayer.start();
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -62,7 +60,7 @@ public class Player {
 	}
 
 	protected boolean stop() {
-		Logger.e(TAG, "stop");
+		Logger.d(TAG, "stop");
 		try {
 			mMediaPlayer.pause();
 		} catch (Exception e) {
@@ -73,7 +71,7 @@ public class Player {
 	}
 
 	protected boolean seek(int pos) {
-		Logger.e(TAG, "seek pos=" + pos);
+		Logger.d(TAG, "seek pos=" + pos);
 		try {
 			int time = (mMediaPlayer.getDuration() * pos)/100;
 			mMediaPlayer.seekTo(time);
@@ -85,12 +83,28 @@ public class Player {
 	}
 
 	protected boolean reset() {
-		Logger.e(TAG, "reset");
+		Logger.d(TAG, "reset");
 		mMediaPlayer.reset();
 		return true;
 	}
 
 	public synchronized boolean handelEvent(PlayEvent event){
 		return mState.processEvent(event);
+	}
+	
+	public int getCurrentPosistion(){
+		return mMediaPlayer.getCurrentPosition();
+	}
+
+	public boolean isPlaying(){
+		return mMediaPlayer.isPlaying();
+	}
+
+	public int getDuration(){
+		return mMediaPlayer.getDuration();
+	}
+
+	public void setOnCompletionListener(OnCompletionListener listner){
+		mMediaPlayer.setOnCompletionListener(listner);
 	}
 }

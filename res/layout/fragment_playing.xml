@@ -10,12 +10,12 @@
         android:contentDescription="@drawable/song_pic_default"
         android:src="@drawable/song_pic_default" />
 
-    <cn.ljj.musicplayer.ui.LrcView
+    <cn.ljj.musicplayer.ui.lrc.LrcView
         android:id="@+id/lrc_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="none"
         android:visibility="gone" >
-    </cn.ljj.musicplayer.ui.LrcView>
+    </cn.ljj.musicplayer.ui.lrc.LrcView>
 
 </FrameLayout>

@@ -10,10 +10,11 @@ import cn.ljj.musicplayer.database.MusicPlayerDatabase;
 import cn.ljj.musicplayer.files.BaiduMusicSearch;
 import cn.ljj.musicplayer.files.BaiduMusicSearch.SeachCallback;
 import cn.ljj.musicplayer.files.Defines;
-import cn.ljj.musicplayer.player.PlayEvent;
-import cn.ljj.musicplayer.player.Player;
+import cn.ljj.musicplayer.player.service.INotify;
+import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.playlist.PlayList;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -31,7 +32,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
-public class PlayListFragment extends Fragment implements Defines, OnItemClickListener, OnMenuItemClickListener, OnClickListener, SeachCallback {
+public class PlayListFragment extends Fragment implements Defines, OnItemClickListener,
+			OnMenuItemClickListener, OnClickListener, SeachCallback{
 	static final int MENU_DELETE = 0;
 	static final int MENU_EDIT = 1;
 	static String TAG = "PlayListFragment";
@@ -41,13 +43,13 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 	Button mBtnSearch = null;
 	EditText mEditSearch = null;
 	PlayList mPlaylist = null;
-	Player mPlayer = null;
+	private INotify mBaseActivityCallBack = null;
 	BaiduMusicSearch mSearcher = null;
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		mRootView = inflater.inflate(R.layout.fragment_playlist, container, false);
-		mPlayer =  Player.getPlayer();
+//		mPlayer =  Player.getPlayer();
 		mPlaylist = PlayList.getPlayList(getActivity());
 		mPlaylist.load("123");
 		if(mPlaylist.isEmpty()){
@@ -102,11 +104,12 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 
 	@Override
 	public void onItemClick(AdapterView<?> adapterView, View view, int index, long arg3) {
-		Logger.e(TAG , "onItemClick index="+index);
-		PlayEvent event = new PlayEvent();
-		event.setEventCode(PlayEvent.EVENT_PLAY);
-		event.setObjectValue(mPlaylist.get(index));
-		mPlayer.handelEvent(event);
+		Logger.i(TAG , "onItemClick index="+index);
+		MusicInfo music = mPlaylist.get(index);
+		mPlaylist.setProgress(-1);
+		if(sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)){
+			mPlaylist.setCurrentIndex(index);
+		}
 	}
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
@@ -166,4 +169,22 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 		}
 	}
 
+	public void setCallback(INotify callback) {
+		mBaseActivityCallBack = callback;
+	}
+
+	private boolean sendCmd(int cmd, int intValue, long longValue, String str, MusicInfo music){
+		boolean ret = false;
+		if(mBaseActivityCallBack == null){
+			return ret;
+		}
+		try {
+			if(mBaseActivityCallBack.onNotify(cmd, intValue, longValue, str, music) == NotifyImpl.RET_OK){
+				ret = true;
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
 }

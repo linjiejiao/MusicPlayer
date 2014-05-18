@@ -10,4 +10,5 @@ public interface Defines {
 	static final int ERROR_PARAMETER = 6;
 	
 	static final String BAIDU_QUERY_BASE = "http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.search.common&page_size=10&page_no=1&format=xml&from=ios&version=4.1.1&query=";
+
 }

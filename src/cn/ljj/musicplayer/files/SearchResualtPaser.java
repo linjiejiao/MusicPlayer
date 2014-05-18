@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import cn.ljj.musicplayer.data.BaiduMusicInfo;
 import cn.ljj.musicplayer.data.MusicInfo;
 import android.util.Xml;
 
@@ -23,7 +22,7 @@ public class SearchResualtPaser {
 		parser.setInput(xml, "UTF-8");
 		int eventType = parser.getEventType();
 		ArrayList <MusicInfo> infos = null;
-		BaiduMusicInfo info = null;
+		MusicInfo info = null;
 		while(eventType != XmlPullParser.END_DOCUMENT){
 			switch(eventType){
 				case XmlPullParser.START_DOCUMENT:
@@ -35,7 +34,7 @@ public class SearchResualtPaser {
 							return null;
 					}
 					if("song".equals(parser.getName())){
-						info = new BaiduMusicInfo();
+						info = new MusicInfo();
 						break;
 					}
 					if(info != null){
@@ -148,7 +147,7 @@ public class SearchResualtPaser {
 		return title;
 	}
 
-	public static void getLinks(BaiduMusicInfo info, String rate) throws Exception{
+	public static void getLinks(MusicInfo info, String rate) throws Exception{
 		String addr = "http://ting.baidu.com/data/music/links?songIds=" + info.getSongId();
 		if(rate != null){
 			addr += "&rate="+rate;

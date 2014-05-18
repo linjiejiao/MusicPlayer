@@ -6,7 +6,7 @@ import java.net.URL;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import cn.ljj.musicplayer.data.BaiduMusicInfo;
+import cn.ljj.musicplayer.data.MusicInfo;
 
 public class BaiduMusicLinkPaser {
 	String rate = null;
@@ -15,7 +15,7 @@ public class BaiduMusicLinkPaser {
 		rate = bitRate;
 	}
 	
-	public void Parser(BaiduMusicInfo info) throws Exception{
+	public void Parser(MusicInfo info) throws Exception{
 		String addr = "http://ting.baidu.com/data/music/links?songIds=" + info.getSongId();
 		if(rate != null){
 			addr += "&rate="+rate;

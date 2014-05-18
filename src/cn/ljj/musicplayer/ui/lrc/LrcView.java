@@ -1,4 +1,4 @@
-package cn.ljj.musicplayer.ui;
+package cn.ljj.musicplayer.ui.lrc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,6 +136,10 @@ public class LrcView extends FrameLayout{
 			scrollToPlaying();
 		}
 	};
+
+	public void updateProgress(int  progress, int duration){
+		
+	}
 
 	class LrcScrollView extends ScrollView{
 

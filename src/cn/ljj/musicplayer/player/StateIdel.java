@@ -1,7 +1,8 @@
 package cn.ljj.musicplayer.player;
 
-import android.util.Log;
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
+
 
 public class StateIdel extends AbstractState {
 
@@ -12,25 +13,30 @@ public class StateIdel extends AbstractState {
 	@Override
 	public boolean processEvent(PlayEvent event) {
 		AbstractState nextState = null;
+		boolean reset = false;
+		MusicInfo music = event.getMusic();
+		if(event.getIntValue() == -1){
+			reset = true;
+		}
 		switch (event.getEventCode()) {
 			case PlayEvent.EVENT_PLAY:
-				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
+				if (mPlayer.play(music, reset)) {
 					nextState = mPlayer.getStatePlaying();
 				}
 				break;
 			case PlayEvent.EVENT_STOP:
 				nextState = mPlayer.getStateStop();
 				break;
-			case PlayEvent.EVENT_PREV:
-				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
-					nextState = mPlayer.getStatePlaying();
-				}
-				break;
-			case PlayEvent.EVENT_NEXT:
-				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
-					nextState = mPlayer.getStatePlaying();
-				}
-				break;
+//			case PlayEvent.EVENT_PREV:
+//				if (mPlayer.play(music, reset)) {
+//					nextState = mPlayer.getStatePlaying();
+//				}
+//				break;
+//			case PlayEvent.EVENT_NEXT:
+//				if (mPlayer.play(music, reset)) {
+//					nextState = mPlayer.getStatePlaying();
+//				}
+//				break;
 			case PlayEvent.EVENT_RELOADLIST:
 				nextState = this;
 				break;
@@ -40,7 +46,7 @@ public class StateIdel extends AbstractState {
 				}
 				break;
 			default:
-				Log.e("StateIdel",
+				Logger.e("StateIdel",
 						"processEvent: invalid event = " + event.toString());
 		}
 		if (nextState != null) {

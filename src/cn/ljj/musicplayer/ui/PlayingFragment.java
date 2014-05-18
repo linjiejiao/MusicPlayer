@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.database.Logger;
+import cn.ljj.musicplayer.ui.lrc.LrcParser;
+import cn.ljj.musicplayer.ui.lrc.LrcParser.LyricLine;
+import cn.ljj.musicplayer.ui.lrc.LrcView;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -26,7 +29,7 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 		lrc_view.init();
 		mSongPic = (ImageView) mRootView.findViewById(R.id.song_pic);
 		mSongPic.setOnClickListener(this);
-		setLrcs(null);
+		setLrcs();
 		return mRootView;
 	}
 
@@ -35,7 +38,7 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 		switch (v.getId()) {
 		case R.id.song_pic:
 			if (lrc_view.getVisibility() == View.GONE) {
-				setLrcs(null);
+				setLrcs();
 				lrc_view.setVisibility(View.VISIBLE);
 			} else {
 				lrc_view.setVisibility(View.GONE);
@@ -45,39 +48,18 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 		Logger.e("onClick", "v=" + v.getId());
 	}
 
-	private void setLrcs(List<String> lrcs) {
-		lrcs = new ArrayList<String>();
-		lrcs.add("srdoafhlafalksf");
-		lrcs.add("sgtdsgsdg");
-		lrcs.add("lhjjgffdyadssxb");
-		lrcs.add("12tgoafsaghlafalks阿什佛ifhocadsadhoaidha  收到哦啊的啊苏打水哦啊是很f");
-		lrcs.add("u2oiwyfhcnalksf");
-		lrcs.add("srdoafhlafalksf");
-		lrcs.add("sgtd124333333343333333333334444444444sgsdg");
-		lrcs.add("lhjjgff333333333333333333333333333333333dyadssxb");
-		lrcs.add("12tgoafsaghlafalksf");
-		lrcs.add("u2oiwyfhcnalksf");
-		lrcs.add("srdoafhlafalksf");
-		lrcs.add("sgtdsgsdg");
-		lrcs.add("lhjjgffdyadssxb");
-		lrcs.add("g斯蒂芬斯蒂芬速度dhoaidha  收到哦啊的啊苏打水哦啊是很f");
-		lrcs.add("u2oiwyfhcnalksf");
-		lrcs.add("srdoafhlafalksf");
-		lrcs.add("sgtdsgsdg");
-		lrcs.add("lhjjgffdyadssxb");
-		lrcs.add("12tgoafsaghlafalksf");
-		lrcs.add("u2oiwyfhcnalksf");
-		lrcs.add("srdoafhlafalksf");
-		lrcs.add("sgtdsgsdg");
-		lrcs.add("lhjjgffdyadssxb");
-		lrcs.add("润肤打开alks阿什佛ifhocadsadhoaidha  收到哦啊的啊苏打水哦啊是很f");
-		lrcs.add("u2oiwyfhcnalksf");
-		lrcs.add("srdoafhlafalksf");
-		lrcs.add("sgtdsgsdg");
-		lrcs.add("lhjjgffdyadssxb");
-		lrcs.add("12tgoafsag333333333333333333333333333hlafalksf");
-		lrcs.add("u2oiwyfhcnalksf");
+	private void setLrcs() {
+		List<String> lrcs = new ArrayList<String>();
+		LrcParser parser = new LrcParser();
+		parser.parser("/mnt/internal/MusicPlayer/lrc/王力宏,章子怡 - 爱一点.lrc");
+		List <LyricLine> list = parser.getLrcList();
+		for(LyricLine lyric : list){
+			lrcs.add(lyric.getLyric());
+		}
 		lrc_view.initScrollViews(lrcs);
 	}
 
+	public void onProgressChange(int  progress, int duration){
+		lrc_view.updateProgress(progress, duration);
+	}
 }

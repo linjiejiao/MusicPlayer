@@ -1,18 +1,20 @@
 package cn.ljj.musicplayer.player;
 
+import cn.ljj.musicplayer.data.MusicInfo;
+
 public class PlayEvent {
 
 	public static final int EVENT_PLAY = 0;
 	public static final int EVENT_STOP = 1;
-	public static final int EVENT_NEXT = 2;
-	public static final int EVENT_PREV = 3;
+//	public static final int EVENT_NEXT = 2;
+//	public static final int EVENT_PREV = 3;
 	public static final int EVENT_SEEK = 4;
 	public static final int EVENT_RELOADLIST = 5;
 
 	private int mEventCode = -1;
-	private int mIntValue = -1;
+	private int mIntValue = 0;
 	private String mStringValue = null;
-	private Object mObjectValue = null;
+	private MusicInfo mMusic = null;
 	public int getEventCode() {
 		return mEventCode;
 	}
@@ -37,12 +39,12 @@ public class PlayEvent {
 		mStringValue = stringValue;
 	}
 
-	public Object getObjectValue() {
-		return mObjectValue;
+	public MusicInfo getMusic() {
+		return mMusic;
 	}
 
-	public void setObjectValue(Object objectValue) {
-		mObjectValue = objectValue;
+	public void setMusic(MusicInfo music) {
+		mMusic = music;
 	}
 
 }

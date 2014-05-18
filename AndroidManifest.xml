@@ -26,6 +26,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service 
+            android:name="cn.ljj.musicplayer.player.service.PlayService"
+            android:process="cn.ljj.musicplayer.playservice"
+            android:exported="false">
+        </service>
     </application>
 
 </manifest>

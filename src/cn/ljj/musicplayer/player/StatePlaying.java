@@ -1,7 +1,7 @@
 package cn.ljj.musicplayer.player;
 
-import android.util.Log;
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
 
 public class StatePlaying extends AbstractState {
 
@@ -12,9 +12,14 @@ public class StatePlaying extends AbstractState {
 	@Override
 	public boolean processEvent(PlayEvent event) {
 		AbstractState nextState = null;
+		boolean reset = false;
+		MusicInfo music = event.getMusic();
+		if(event.getIntValue() == -1){
+			reset = true;
+		}
 		switch (event.getEventCode()) {
 			case PlayEvent.EVENT_PLAY:
-				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
+				if (mPlayer.play(music, reset)) {
 					nextState = this;
 				}
 				nextState = this;
@@ -24,16 +29,16 @@ public class StatePlaying extends AbstractState {
 					nextState = mPlayer.getStateStop();
 				}
 				break;
-			case PlayEvent.EVENT_PREV:
-				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
-					nextState = this;
-				}
-				break;
-			case PlayEvent.EVENT_NEXT:
-				if (mPlayer.play((MusicInfo) event.getObjectValue())) {
-					nextState = this;
-				}
-				break;
+//			case PlayEvent.EVENT_PREV:
+//				if (mPlayer.play(music, reset)) {
+//					nextState = this;
+//				}
+//				break;
+//			case PlayEvent.EVENT_NEXT:
+//				if (mPlayer.play(music, reset)) {
+//					nextState = this;
+//				}
+//				break;
 			case PlayEvent.EVENT_RELOADLIST:
 				nextState = mPlayer.getStateIdel();
 				break;
@@ -43,7 +48,7 @@ public class StatePlaying extends AbstractState {
 				}
 				break;
 			default:
-				Log.e("StatePlaying",
+				Logger.e("StatePlaying",
 						"processEvent: invalid event = " + event.toString());
 		}
 		if (nextState != null) {
