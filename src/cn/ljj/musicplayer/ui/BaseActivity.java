@@ -14,6 +14,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
@@ -164,6 +165,12 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 						mBtnPlay.setTag(null);
 					}
 				}
+				String path = Environment.getExternalStorageDirectory().getPath()
+						+ "/MusicPlayer/lrc/王力宏,章子怡 - 爱一点.lrc";
+				playing.setLrc(path);
+				String picPath = Environment.getExternalStorageDirectory().getPath()
+						+ "/MusicPlayer/pic/王力宏,章子怡 - 爱一点.jpg";
+				playing.setImage(picPath);
 				break;
 			case R.id.buttonPrev:
 //				sendCmd(NotifyImpl.CMD_PREV_EVENT, -1, 0, null, mPlaylist.getPrev());
@@ -241,6 +248,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 							mTextTimeAll.setText(StaticUtils.getDispTime((int)longValue));
 							mTextTimePassed.setText(StaticUtils.getDispTime(intValue));
 							mSeekPlayProgress.setProgress(progress);
+							playing.onProgressChange(intValue, (int)longValue);
 						}
 					});
 					break;

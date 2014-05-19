@@ -17,9 +17,9 @@ import android.widget.TextView;
 public class LrcView extends FrameLayout{
 	static final int LRC_COLOR_NORMAL = 0xffffffff;
 	static final int LRC_COLOR_PALYING = 0xff00ffff;
-	static final int LRC_SIZE_NORMAL = 20;
+	static final int LRC_SIZE_NORMAL = 15;
 	static final int LRC_SIZE_PALYING = 25;
-	static final int LRC_MARGIN = 10;
+	static final int LRC_MARGIN = 5;
 	static final int SCROLLVIEW_ID = 1000;
 	static final int LRCMASK_ID = 1001;
 	List<TextView> mLrcTexts = new ArrayList<TextView>();
@@ -30,6 +30,7 @@ public class LrcView extends FrameLayout{
 	LinearLayout mLinearLayout = null;
 	LrcScrollView mLrcScroll = null;
 	ImageView mLrcMask = null;
+	public static String TAG = "LrcView";
 	public LrcView(Context context) {
 		super(context);
 		mContext = context;
@@ -64,7 +65,8 @@ public class LrcView extends FrameLayout{
 		lp.setMargins(0, 0, 0, 0);
 		addView(mLrcMask,lp);
 	}
-	public void initScrollViews(List<String> lrcs){
+
+	public void initScrollViews(List<LyricLine> lrcs){
 		mLrcScroll.removeAllViews();
 		addLinearLayouttoSroll();
 		mLrcTexts.clear();
@@ -73,22 +75,33 @@ public class LrcView extends FrameLayout{
 		lp.topMargin = LRC_MARGIN;
 		lp.bottomMargin = LRC_MARGIN;
 		mTopText = new TextView(mContext);
-		mTopText.setTextSize(2*LRC_SIZE_NORMAL);
+		mTopText.setTextSize(5*LRC_SIZE_PALYING);
 		mTopText.setGravity(Gravity.CENTER_HORIZONTAL);
 		mLinearLayout.addView(mTopText,lp);
-
-		for(String str:lrcs){
+		
+		if(lrcs.isEmpty()){
 			TextView text = new TextView(mContext);
-			text.setText(str);
+			text.setText(R.string.str_lrc_not_found);
 			text.setTextSize(LRC_SIZE_NORMAL);
 			text.setTextColor(LRC_COLOR_NORMAL);
 			text.setGravity(Gravity.CENTER_HORIZONTAL);
 			mLinearLayout.addView(text,lp);
 			mLrcTexts.add(text);
+		}else{
+			for(LyricLine line:lrcs){
+				TextView text = new TextView(mContext);
+				text.setText(line.getLyric());
+				text.setTag(line);
+				text.setTextSize(LRC_SIZE_NORMAL);
+				text.setTextColor(LRC_COLOR_NORMAL);
+				text.setGravity(Gravity.CENTER_HORIZONTAL);
+				mLinearLayout.addView(text,lp);
+				mLrcTexts.add(text);
+			}
 		}
-
+		
 		mBottomText = new TextView(mContext);
-		mBottomText.setTextSize(2*LRC_SIZE_NORMAL);
+		mBottomText.setTextSize(5*LRC_SIZE_PALYING);
 		mBottomText.setGravity(Gravity.CENTER_HORIZONTAL);
 		mLinearLayout.addView(mBottomText,lp);
 	}
@@ -109,6 +122,9 @@ public class LrcView extends FrameLayout{
 	}
 
 	public void highlight(int posistion){
+		if(mCurrentPosistion == posistion){
+			return ;
+		}
 		if(posistion < mLrcTexts.size()){
 			TextView text = mLrcTexts.get(mCurrentPosistion);
 			text.setTextColor(LRC_COLOR_NORMAL);
@@ -138,7 +154,44 @@ public class LrcView extends FrameLayout{
 	};
 
 	public void updateProgress(int  progress, int duration){
-		
+		if(mLrcTexts.isEmpty()){
+			return ;
+		}
+		int i = mCurrentPosistion;
+		while(true){
+			TextView text = mLrcTexts.get(i);
+			LyricLine line = (LyricLine)text.getTag();
+			if(line.getTime() > progress){
+				if(i == 0){	//reach first
+					highlight(0);
+					break;
+				}else{
+					text = mLrcTexts.get(i-1);
+					line = (LyricLine)text.getTag();
+					if(line.getTime() > progress){
+						i--;	//roll back
+					}else{
+						highlight(i-1);
+						break;
+					}
+				}
+			}else{
+				if(i == mLrcTexts.size()-1){	//reach end
+					highlight(mLrcTexts.size()-1);
+					break;
+				}else{
+					text = mLrcTexts.get(i+1);
+					line = (LyricLine)text.getTag();
+					if(line.getTime() < progress){
+						i++;
+					}else{
+						highlight(i);
+						break;
+					}
+				}
+				
+			}
+		}		
 	}
 
 	class LrcScrollView extends ScrollView{

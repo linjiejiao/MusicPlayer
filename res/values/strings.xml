@@ -13,5 +13,6 @@
     <string name="str_remove">从列表中移除</string>
     <string name="str_operate">操作</string>
     <string name="str_search_hint">王力宏</string>
+    <string name="str_lrc_not_found">歌词没找到！</string>
 
 </resources>

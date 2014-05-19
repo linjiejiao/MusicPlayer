@@ -13,15 +13,18 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.text.TextUtils;
+
 public class LrcParser{
 	private int mCount = 0;
 	private List<LyricLine> mLrcList = new ArrayList<LyricLine>();
-	private String title = " ";
-	private String artist = " ";
-	private String album = " ";
-	private String by = " ";
+	private String title = "";
+	private String artist = "";
+	private String album = "";
+	private String by = "";
 	
 	public LrcParser(){
+
 	}
 
 	public int parser(String str){
@@ -33,8 +36,9 @@ public class LrcParser{
 		Pattern pAl = Pattern.compile("\\[al:[^>]*\\]");	//album
 		Pattern pBy = Pattern.compile("\\[by:[^>]*\\]");	//by
 		ArrayList<String> list = readFile(str);
-		if(list == null)
+		if(list == null){
 			return -1;
+		}
 		mLrcList.clear();
 		mCount = list.size();
 		int i=0;
@@ -52,15 +56,16 @@ public class LrcParser{
 					int index4 = 9;//line.indexOf("]");
 					int index5 = line.lastIndexOf("]");
 					temp = line.substring(index1+1,index2);
-					lyricLine.time = Integer.parseInt(temp)*60*1000;
+					int time = Integer.parseInt(temp)*60*1000;
 					temp = line.substring(index2+1,index3);
-					lyricLine.time += Integer.parseInt(temp)*1000;
+					time += Integer.parseInt(temp)*1000;
 					temp = line.substring(index3+1,index4);
-					lyricLine.time += Integer.parseInt(temp)*10;
+					time += Integer.parseInt(temp)*10;
+					lyricLine.setTime(time);
 					//System.out.println("lyricLine.time = "+lyricLine.time);
 					temp = line.substring(index5+1);
 					line = line.substring(index4+1);
-					lyricLine.lyric = temp;
+					lyricLine.setLyric(temp);
 					mLrcList.add(lyricLine);
 					//System.out.println("lyricLine.lyric = "+lyricLine.lyric);
 				}
@@ -94,23 +99,25 @@ public class LrcParser{
 		}
 		if(mLrcList.size() == 0)
 			return 0;
-		int timeEverage = mLrcList.get(0).time/4;
-		LyricLine lyricLine1 = new LyricLine();
-		lyricLine1.lyric = title;
-		lyricLine1.time = 0;
-		LyricLine lyricLine2 = new LyricLine();
-		lyricLine2.lyric = artist;
-		lyricLine2.time = timeEverage;
-		LyricLine lyricLine3 = new LyricLine();
-		lyricLine3.lyric = album;
-		lyricLine3.time = 2*timeEverage;
-		LyricLine lyricLine4 = new LyricLine();
-		lyricLine4.lyric = by;
-		lyricLine4.time = 3*timeEverage;
-		mLrcList.add(lyricLine1);
-		mLrcList.add(lyricLine2);
-		mLrcList.add(lyricLine3);
-		mLrcList.add(lyricLine4);
+		String info = "";
+		LyricLine lyricLine = new LyricLine();
+		lyricLine.setTime(0);
+		if(!TextUtils.isEmpty(title)){
+			info += "title:"+title;
+		}
+		if(!TextUtils.isEmpty(artist)){
+			info += "; artist:"+artist;
+		}
+		if(!TextUtils.isEmpty(album)){
+			info += "; album:"+album;
+		}
+		if(!TextUtils.isEmpty(by)){
+			info += "; by:"+by;
+		}
+		if(!TextUtils.isEmpty(info)){
+			lyricLine.setLyric(info);
+			mLrcList.add(lyricLine);
+		}
 		Collections.sort(mLrcList,comparator); 
 		mCount = mLrcList.size();
 		System.out.println("LRC parser end");
@@ -164,25 +171,8 @@ public class LrcParser{
 
 	private Comparator<LyricLine> comparator = new Comparator<LyricLine>(){
 	public int compare(LyricLine l1, LyricLine l2) {       
-			return l1.time-l2.time;    
+			return l1.getTime()-l2.getTime();    
 		}
 	};  
 	
-	public class LyricLine{
-		private int time = 0;
-		private String lyric = null;
-		public int getTime() {
-			return time;
-		}
-		public void setTime(int time) {
-			this.time = time;
-		}
-		public String getLyric() {
-			return lyric;
-		}
-		public void setLyric(String lyric) {
-			this.lyric = lyric;
-		}
-		
-	}
 }
