@@ -14,5 +14,6 @@
     <string name="str_operate">操作</string>
     <string name="str_search_hint">王力宏</string>
     <string name="str_lrc_not_found">歌词没找到！</string>
+    <string name="str_download">下载到本地</string>
 
 </resources>

@@ -83,6 +83,7 @@ public final class R {
         public static final int app_name=0x7f050000;
         public static final int str_album=0x7f050008;
         public static final int str_artist=0x7f050007;
+        public static final int str_download=0x7f05000d;
         public static final int str_lrc_not_found=0x7f05000c;
         public static final int str_name=0x7f050006;
         public static final int str_operate=0x7f05000a;

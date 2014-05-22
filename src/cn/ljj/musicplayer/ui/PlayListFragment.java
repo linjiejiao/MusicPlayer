@@ -10,12 +10,15 @@ import cn.ljj.musicplayer.database.MusicPlayerDatabase;
 import cn.ljj.musicplayer.files.BaiduMusicSearch;
 import cn.ljj.musicplayer.files.BaiduMusicSearch.SeachCallback;
 import cn.ljj.musicplayer.files.Defines;
+import cn.ljj.musicplayer.files.DownloadFactory;
+import cn.ljj.musicplayer.files.Downloader.DownloadCallback;
 import cn.ljj.musicplayer.player.service.INotify;
 import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.playlist.PlayList;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -35,7 +38,7 @@ import android.widget.SimpleAdapter;
 public class PlayListFragment extends Fragment implements Defines, OnItemClickListener,
 			OnMenuItemClickListener, OnClickListener, SeachCallback{
 	static final int MENU_DELETE = 0;
-	static final int MENU_EDIT = 1;
+	static final int MENU_DOWNLOAD = 1;
 	static String TAG = "PlayListFragment";
 	View mRootView = null;
 	ListView mPlayListView = null;
@@ -116,8 +119,8 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 			ContextMenuInfo menuInfo) {
 		if (menuInfo != null) {
             menu.setHeaderTitle(R.string.str_operate);
-//            menu.add(0, MENU_EDIT, 0, R.string.str_edit)
-//            	.setOnMenuItemClickListener(this);
+            menu.add(0, MENU_DOWNLOAD , 0, R.string.str_download)
+            	.setOnMenuItemClickListener(this);
             menu.add(0, MENU_DELETE, 1, R.string.str_remove)
             	.setOnMenuItemClickListener(this);
         }
@@ -130,6 +133,25 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 		switch(menu.getItemId()){
 		case MENU_DELETE:
 			removeFromList(id);
+			break;
+		case MENU_DOWNLOAD:
+			final MusicInfo music = mPlaylist.get(id);
+			String saveName = music.getName() + "." + music.getFormat();
+			DownloadFactory.DownloadMusic(music.getMusicPath(), saveName, new DownloadCallback() {
+				@Override
+				public void onProgressChange(int length, int finished) {
+					Logger.e(TAG, "onProgressChange "+finished + "/" + length);
+				}
+				@Override
+				public void onFinished(String filePath) {
+					music.setMusicPath(filePath);
+					Logger.e(TAG, "onFinished filePath="+filePath);
+				}
+				@Override
+				public void onFaild(int errorCode) {
+					Logger.e(TAG, "onFaild errorCode="+errorCode);
+				}
+			});
 			break;
 		}
 		return false;

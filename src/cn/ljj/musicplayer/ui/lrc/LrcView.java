@@ -17,6 +17,7 @@ import android.widget.TextView;
 public class LrcView extends FrameLayout{
 	static final int LRC_COLOR_NORMAL = 0xffffffff;
 	static final int LRC_COLOR_PALYING = 0xff00ffff;
+	static final int LRC_COLOR_BACKGROUND = 0x8000314f;
 	static final int LRC_SIZE_NORMAL = 15;
 	static final int LRC_SIZE_PALYING = 25;
 	static final int LRC_MARGIN = 5;
@@ -117,6 +118,7 @@ public class LrcView extends FrameLayout{
 				setVisibility(GONE);
 			}
 		});
+		mLinearLayout.setBackgroundColor(LRC_COLOR_BACKGROUND);
 		mLrcScroll.addView(mLinearLayout,lp);
 		return mLinearLayout;
 	}

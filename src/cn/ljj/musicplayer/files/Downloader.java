@@ -29,8 +29,8 @@ public class Downloader implements Runnable, Defines {
 		mSavePath = savePath;
 	}
 
-	public void setCallBack(DownloadCallback callbakc) {
-		mCallback = callbakc;
+	public void setCallBack(DownloadCallback callback) {
+		mCallback = callback;
 	}
 
 	private void onProgressChange(int length, int finished) {
