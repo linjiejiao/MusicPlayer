@@ -4,18 +4,30 @@ import cn.ljj.musicplayer.data.StaticUtils;
 import cn.ljj.musicplayer.files.Downloader.DownloadCallback;
 
 public class DownloadFactory {
-	public static void DownloadMusic(String url, String saveName, DownloadCallback callback){
+	public static Downloader DownloadMusic(String url, String saveName,
+			DownloadCallback callback) {
 		String savePath = StaticUtils.getMusicPath() + saveName;
 		Downloader dl = new Downloader(url, savePath);
 		dl.setCallBack(callback);
 		new Thread(dl).start();
-	}
-	
-public static void DownloadPic(String url, String saveName, DownloadCallback callback){
-		
+		return dl;
 	}
 
-public static void DownloadLrc(String url, String saveName, DownloadCallback callback){
-	
-}
+	public static Downloader DownloadPic(String url, String saveName,
+			DownloadCallback callback) {
+		String savePath = StaticUtils.getPicPath() + saveName;
+		Downloader dl = new Downloader(url, savePath);
+		dl.setCallBack(callback);
+		new Thread(dl).start();
+		return dl;
+	}
+
+	public static Downloader DownloadLrc(String url, String saveName,
+			DownloadCallback callback) {
+		String savePath = StaticUtils.getLrcPath() + saveName;
+		Downloader dl = new Downloader(url, savePath);
+		dl.setCallBack(callback);
+		new Thread(dl).start();
+		return dl;
+	}
 }

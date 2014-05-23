@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Random;
 import android.content.Context;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
 
-public class PlayList {
+public class PlayList implements Observer {
 	public static final int SEQ_CIRCLE = 0;
 	public static final int SEQ_RAMDON = 1;
 	public static final int SEQ_SINGLE = 2;
@@ -106,6 +108,9 @@ public class PlayList {
 
 	public void setMusicList(List<MusicInfo> list ,String listNme) {
 		mMusicList.clear();
+		for(MusicInfo music:list){
+			music.addObserver(this);
+		}
 		mMusicList.addAll(list);
 		mCurrentIndex = 0;
 		mPlayListName = listNme;
@@ -126,7 +131,8 @@ public class PlayList {
 		Logger.e(TAG , "remove index="+index);
 		if(mPlayListName != null){
 			long deleteId = mMusicList.get(index).getId();
-			mPersister.removeMusic(deleteId);
+			long listId = mMusicList.get(index).getListId();
+			mPersister.removeMusic(deleteId,listId);
 		}
 		mMusicList.remove(index);
 		if (index == mCurrentIndex) {
@@ -198,5 +204,15 @@ public class PlayList {
 
 	public void setProgress(int progress) {
 		mProgress = progress;
+	}
+
+	@Override
+	public void update(Observable observable, Object data) {
+		if(data != null){
+			long changeId = ((MusicInfo)data).getId();
+			if(changeId != -1){
+				
+			}
+		}
 	}
 }

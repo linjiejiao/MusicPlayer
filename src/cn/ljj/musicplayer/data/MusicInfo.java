@@ -1,9 +1,11 @@
 package cn.ljj.musicplayer.data;
 
+import java.util.Observable;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class MusicInfo implements Parcelable {
+public class MusicInfo extends Observable implements Parcelable{
 	public static final int LOCATION_LOCAL = 0;
 	public static final int LOCATION_ONLINE = 1;
 	
@@ -17,6 +19,7 @@ public class MusicInfo implements Parcelable {
 	private String mDurationStr = null;
 	private int mDuration = 0;
 	private long _id = -1;
+	private long mListId = -1;
 	//baidu music
 	private String mSongId = null;
 	private String mAllArtistId = null;
@@ -422,4 +425,14 @@ public class MusicInfo implements Parcelable {
 		readFromParcel(in);
 	}
 
+	public long getListId() {
+		return mListId;
+	}
+
+	public void setListId(long listId) {
+		mListId = listId;
+	}
+
+
+	
 }

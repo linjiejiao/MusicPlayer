@@ -62,7 +62,7 @@ public class LrcView extends FrameLayout{
 		mLrcMask.setId(LRCMASK_ID);
 		lp = new FrameLayout.LayoutParams(
 				LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
-		lp.setMargins(LRC_MARGIN, LRC_MARGIN, LRC_MARGIN, LRC_MARGIN);
+//		lp.setMargins(LRC_MARGIN, LRC_MARGIN, LRC_MARGIN, LRC_MARGIN);
 		lp.setMargins(0, 0, 0, 0);
 		addView(mLrcMask,lp);
 	}
@@ -75,19 +75,17 @@ public class LrcView extends FrameLayout{
 				LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
 		lp.topMargin = LRC_MARGIN;
 		lp.bottomMargin = LRC_MARGIN;
+
 		mTopText = new TextView(mContext);
-		mTopText.setTextSize(5*LRC_SIZE_PALYING);
-		mTopText.setGravity(Gravity.CENTER_HORIZONTAL);
+		mTopText.setTextSize(6*LRC_SIZE_PALYING);
 		mLinearLayout.addView(mTopText,lp);
-		
 		if(lrcs.isEmpty()){
 			TextView text = new TextView(mContext);
 			text.setText(R.string.str_lrc_not_found);
-			text.setTextSize(LRC_SIZE_NORMAL);
-			text.setTextColor(LRC_COLOR_NORMAL);
+			text.setTextSize(LRC_SIZE_PALYING);
+			text.setTextColor(LRC_COLOR_PALYING);
 			text.setGravity(Gravity.CENTER_HORIZONTAL);
 			mLinearLayout.addView(text,lp);
-			mLrcTexts.add(text);
 		}else{
 			for(LyricLine line:lrcs){
 				TextView text = new TextView(mContext);
@@ -100,10 +98,8 @@ public class LrcView extends FrameLayout{
 				mLrcTexts.add(text);
 			}
 		}
-		
 		mBottomText = new TextView(mContext);
-		mBottomText.setTextSize(5*LRC_SIZE_PALYING);
-		mBottomText.setGravity(Gravity.CENTER_HORIZONTAL);
+		mBottomText.setTextSize(6*LRC_SIZE_PALYING);
 		mLinearLayout.addView(mBottomText,lp);
 	}
 
@@ -119,6 +115,7 @@ public class LrcView extends FrameLayout{
 			}
 		});
 		mLinearLayout.setBackgroundColor(LRC_COLOR_BACKGROUND);
+		mLinearLayout.setGravity(Gravity.CENTER);
 		mLrcScroll.addView(mLinearLayout,lp);
 		return mLinearLayout;
 	}
@@ -140,6 +137,9 @@ public class LrcView extends FrameLayout{
 	}
 
 	private void scrollToPlaying(){
+		if(mLrcTexts.isEmpty()){
+			return;
+		}
 		int allheight = mTopText.getHeight() + 2*LRC_MARGIN;
 		for(int i=0;i<=mCurrentPosistion;i++){
 			allheight += mLrcTexts.get(i).getHeight() + 2*LRC_MARGIN;
@@ -163,6 +163,9 @@ public class LrcView extends FrameLayout{
 		while(true){
 			TextView text = mLrcTexts.get(i);
 			LyricLine line = (LyricLine)text.getTag();
+			if(line == null){
+				return;
+			}
 			if(line.getTime() > progress){
 				if(i == 0){	//reach first
 					highlight(0);

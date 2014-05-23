@@ -45,11 +45,14 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 		}
 	}
 
-	public void setLrc(String lrcPath) {
+	public boolean setLrc(String lrcPath) {
 		LrcParser parser = new LrcParser();
-		parser.parser(lrcPath);
+		if(parser.parser(lrcPath) == -1){
+			return false;
+		}
 		List <LyricLine> list = parser.getLrcList();
 		lrc_view.initScrollViews(list);
+		return true;
 	}
 
 	public void setImage(String picPath) {

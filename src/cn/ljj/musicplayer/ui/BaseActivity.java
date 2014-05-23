@@ -21,6 +21,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -80,7 +81,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		@Override
 		public Fragment getItem(int position) {
 			Fragment fragment = null;
-			if(position == 0){
+			if(position == 1){
 				playlist = new PlayListFragment();
 				playlist.setCallback(mCallback);
 				fragment = playlist;
@@ -128,6 +129,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 			case R.id.action_add:
+				mPlaylist.deletePlayList("123");
 				break;
 			case R.id.action_search:
 				if(playlist.mSearchView.getVisibility() == View.VISIBLE && mViewPager.getCurrentItem() == 0){
@@ -152,12 +154,21 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 				break;
 			case R.id.buttonPlay:
 				if(!BaseActivity.this.equals(mBtnPlay.getTag())){
-					boolean ret = sendCmd(NotifyImpl.CMD_PLAY_EVENT, mPlaylist.getProgress(), 0, null, mPlaylist.get());
+					MusicInfo music = mPlaylist.get();
+					boolean ret = sendCmd(NotifyImpl.CMD_PLAY_EVENT, mPlaylist.getProgress(), 0, null, music);
 					if(ret){
 						mBtnPlay.setBackgroundResource(R.drawable.button_pause);
 						mBtnPlay.setTag(BaseActivity.this);
 					}
-					
+					String lrcPath = music.getLrcPath();
+					if(!TextUtils.isEmpty(lrcPath)){
+						if(!playing.setLrc(lrcPath)){
+							String lrcLink = music.getLrclink();
+							if(!TextUtils.isEmpty(lrcLink)){
+								
+							}
+						}
+					}
 				}else{
 					boolean ret = sendCmd(NotifyImpl.CMD_STOP_EVENT, 0, 0,null,null);
 					if(ret){

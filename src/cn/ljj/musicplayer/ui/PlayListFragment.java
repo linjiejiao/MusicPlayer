@@ -18,7 +18,6 @@ import cn.ljj.musicplayer.playlist.PlayList;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -165,7 +164,7 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 	}
 
 	private void search(String keys){
-		mSearcher.search(keys);
+		mSearcher.search(keys,10,0);
 	}
 
 	@Override

@@ -62,7 +62,7 @@ public class PlayListPersister {
 				.getColumnIndex(MusicPlayerDatabase.MUSIC_PATH);
 		int lrcPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.LRC_PATH);
 		int picPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.PIC_PATH);
-
+		int listIdIndex = cursor.getColumnIndex(MusicPlayerDatabase.LIST_ID);
 		while (cursor.moveToNext()) {
 			long _id = cursor.getInt(idIndex);
 			String name = cursor.getString(nameIndex);
@@ -72,6 +72,7 @@ public class PlayListPersister {
 			String musicPath = cursor.getString(musicPathIndex);
 			String lrcPath = cursor.getString(lrcPathIndex);
 			String picPath = cursor.getString(picPathIndex);
+			long listId = cursor.getLong(listIdIndex);
 
 			MusicInfo music = new MusicInfo(name, musicPath);
 			music.setId(_id);
@@ -80,7 +81,7 @@ public class PlayListPersister {
 			music.setDuration(duration);
 			music.setLrcPath(lrcPath);
 			music.setPicPath(picPath);
-
+			music.setListId(listId);
 			list.add(music);
 		}
 		return list;
@@ -135,12 +136,12 @@ public class PlayListPersister {
 			db.endTransaction();
 			// updata list count
 			sql = "select * from " + MusicPlayerDatabase.TABLE_MUSICS
-					+ "where " + MusicPlayerDatabase.LIST_ID + " = " + listId;
+					+ " where " + MusicPlayerDatabase.LIST_ID + " = " + listId;
 			cursor = db.rawQuery(sql, null);
 			ContentValues values = new ContentValues();
 			values.put(MusicPlayerDatabase.LIST_SIZE, cursor.getCount());
 			db.update(MusicPlayerDatabase.TABLE_LIST, values,
-					MusicPlayerDatabase.LIST_ID + " = " + listId, null);
+					" _id = " + listId, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return -1;
@@ -182,10 +183,17 @@ public class PlayListPersister {
 							.getString(playlistCursor
 									.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
 					int durationInt = Integer.parseInt(duration);
+					String format = "";
+					if(name.contains(".")){
+						String temp = name;
+						name = temp.substring(0,temp.lastIndexOf(".")-1);
+						format = temp.substring(temp.lastIndexOf(".")+1);
+					}
 					MusicInfo music = new MusicInfo(name, path);
 					music.setDuration(durationInt);
 					music.setAlbum(album);
 					music.setArtist(artist);
+					music.setFormat(format);
 					list.add(music);
 				}
 			}
@@ -202,15 +210,19 @@ public class PlayListPersister {
 
 	public Long persist(MusicInfo music, String listName) {
 		Logger.d(TAG, "persist music=" + music + "; listName=" + listName);
-		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
+		String sql = "select * from " + MusicPlayerDatabase.TABLE_LIST
 				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
 		long musicId = -1;
+		int listSize = -1;
 		Cursor cursor = null;
 		try {
 			long listId = -1;
 			cursor = db.rawQuery(sql, null);
 			if (cursor.moveToFirst()) {
-				listId = cursor.getLong(0);
+				listId = cursor.getLong(
+						cursor.getColumnIndex("_id"));
+				listSize = cursor.getInt(
+						cursor.getColumnIndex(MusicPlayerDatabase.LIST_SIZE));
 			}
 			cursor.close();
 			cursor = null;
@@ -226,6 +238,11 @@ public class PlayListPersister {
 				values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
 				musicId = db.insert(MusicPlayerDatabase.TABLE_MUSICS,
 						MusicPlayerDatabase.NAME, values);
+				if(listSize != -1){
+					values = new ContentValues();
+					values.put(MusicPlayerDatabase.LIST_SIZE, listSize+1);
+					db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id="+listId, null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -238,12 +255,18 @@ public class PlayListPersister {
 		return musicId;
 	}
 
-	public int removeMusic(long id) {
-		Logger.d(TAG, "removeMusic id=" + id);
-		if (id == -1) {
+	public int removeMusic(long musicId, long listId) {
+		Logger.d(TAG, "removeMusic MusicId=" + musicId);
+		if (musicId == -1 || listId == -1) {
 			return -1;
 		}
-		return db.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = " + id, null);
+		int listSize = db.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = " + musicId, null);
+		if(listSize != -1){
+			ContentValues values = new ContentValues();
+			values.put(MusicPlayerDatabase.LIST_SIZE, listSize-1);
+			db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id="+listId, null);
+		}
+		return listSize;
 	}
 
 	public int deletePlayList(String listName) {
@@ -304,5 +327,21 @@ public class PlayListPersister {
 		}
 		Logger.d(TAG, "getAllSavedPlayList list=" + list);
 		return list;
+	}
+	
+	public long update(MusicInfo music){
+		long musicId = music.getId();
+		if (musicId != -1) {
+			ContentValues values = new ContentValues();
+			values.put(MusicPlayerDatabase.NAME, music.getName());
+			values.put(MusicPlayerDatabase.ALBUM, music.getAlbum());
+			values.put(MusicPlayerDatabase.ARTIST, music.getArtist());
+			values.put(MusicPlayerDatabase.DURATION, music.getDuration());
+			values.put(MusicPlayerDatabase.MUSIC_PATH, music.getMusicPath());
+			values.put(MusicPlayerDatabase.LRC_PATH, music.getLrcPath());
+			values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
+			musicId = db.update(MusicPlayerDatabase.TABLE_MUSICS, values, "_id="+musicId,null);
+		}
+		return musicId;
 	}
 }

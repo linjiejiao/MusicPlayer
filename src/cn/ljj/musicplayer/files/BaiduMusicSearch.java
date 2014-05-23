@@ -26,9 +26,11 @@ public class BaiduMusicSearch implements Runnable,Defines{
 		}
 	}
 
-	public void search(String keys){
+	public void search(String keys, int pageSize, int pageNo){
 		try {
-			mUrl = BAIDU_QUERY_BASE + URLEncoder.encode(keys, "UTF-8");
+			mUrl = BAIDU_QUERY_BASE + "&page_size=" + pageSize
+					+ "&page_no=" + pageNo;
+			mUrl += URLEncoder.encode("&query="+keys, "UTF-8");
 			new Thread(this).start();
 		} catch (UnsupportedEncodingException e) {
 			onSearchResult(null);
