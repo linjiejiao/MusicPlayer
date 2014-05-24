@@ -1,5 +1,6 @@
 package cn.ljj.musicplayer.ui;
 
+import java.util.ArrayList;
 import java.util.List;
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.ui.lrc.LrcParser;
@@ -46,17 +47,30 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 	}
 
 	public boolean setLrc(String lrcPath) {
-		LrcParser parser = new LrcParser();
-		if(parser.parser(lrcPath) == -1){
+		try {
+			if(lrcPath == null){
+				lrc_view.initScrollViews(new ArrayList <LyricLine>());
+				return true;
+			}
+			LrcParser parser = new LrcParser();
+			if(parser.parser(lrcPath) == -1){
+				return false;
+			}
+			List <LyricLine> list = parser.getLrcList();
+			lrc_view.initScrollViews(list);
+		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
 		}
-		List <LyricLine> list = parser.getLrcList();
-		lrc_view.initScrollViews(list);
 		return true;
 	}
 
 	public void setImage(String picPath) {
 		try {
+			if(picPath == null){
+				mSongPic.setImageResource(R.drawable.song_pic_default);
+				return ;
+			}
 			Bitmap bmp = BitmapFactory.decodeFile(picPath);
 			mSongPic.setImageBitmap(bmp);
 		} catch (Exception e) {
@@ -65,7 +79,10 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 	}
 
 	public void onProgressChange(int  progress, int duration){
-		lrc_view.updateProgress(progress, duration);
-//		Logger.e(TAG , "onProgressChange progress=" + progress + "; duration=" + duration);
+		try {
+			lrc_view.updateProgress(progress, duration);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

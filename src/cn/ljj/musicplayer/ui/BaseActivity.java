@@ -1,5 +1,8 @@
 package cn.ljj.musicplayer.ui;
 
+import java.util.Observable;
+import java.util.Observer;
+
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.data.StaticUtils;
@@ -8,13 +11,13 @@ import cn.ljj.musicplayer.player.service.INotify;
 import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.player.service.PlayService;
 import cn.ljj.musicplayer.playlist.PlayList;
+import cn.ljj.musicplayer.ui.lrc.LrcPicManager;
 import android.support.v4.app.Fragment;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
@@ -31,7 +34,7 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
-public class BaseActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener{
+public class BaseActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener,Observer{
 	public static  String TAG = "BaseActivity";
 	SectionsPagerAdapter mSectionsPagerAdapter;
 	ViewPager mViewPager;
@@ -41,13 +44,11 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	TextView mTextTimePassed = null;
 	TextView mTextTimeAll = null;
 	SeekBar mSeekPlayProgress = null;
-//	Player mPlayer = null;
 	PlayList mPlaylist = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_base);
-//		mPlayer =  Player.getPlayer();
 		mPlaylist = PlayList.getPlayList(this);
 		initViews();
 		bindService();
@@ -81,7 +82,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		@Override
 		public Fragment getItem(int position) {
 			Fragment fragment = null;
-			if(position == 1){
+			if(position == 0){
 				playlist = new PlayListFragment();
 				playlist.setCallback(mCallback);
 				fragment = playlist;
@@ -149,7 +150,6 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	public void onClick(View v) {
 		switch(v.getId()){
 			case R.id.buttonNext:
-//				sendCmd(NotifyImpl.CMD_NEXT_EVENT, -1, 0, null, mPlaylist.getNext());
 				sendCmd(NotifyImpl.CMD_PLAY_EVENT, -1, 0, null, mPlaylist.getNext());
 				break;
 			case R.id.buttonPlay:
@@ -160,15 +160,6 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 						mBtnPlay.setBackgroundResource(R.drawable.button_pause);
 						mBtnPlay.setTag(BaseActivity.this);
 					}
-					String lrcPath = music.getLrcPath();
-					if(!TextUtils.isEmpty(lrcPath)){
-						if(!playing.setLrc(lrcPath)){
-							String lrcLink = music.getLrclink();
-							if(!TextUtils.isEmpty(lrcLink)){
-								
-							}
-						}
-					}
 				}else{
 					boolean ret = sendCmd(NotifyImpl.CMD_STOP_EVENT, 0, 0,null,null);
 					if(ret){
@@ -176,19 +167,13 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 						mBtnPlay.setTag(null);
 					}
 				}
-				String path = Environment.getExternalStorageDirectory().getPath()
-						+ "/MusicPlayer/lrc/王力宏,章子怡 - 爱一点.lrc";
-				playing.setLrc(path);
-				String picPath = Environment.getExternalStorageDirectory().getPath()
-						+ "/MusicPlayer/pic/王力宏,章子怡 - 爱一点.jpg";
-				playing.setImage(picPath);
 				break;
 			case R.id.buttonPrev:
-//				sendCmd(NotifyImpl.CMD_PREV_EVENT, -1, 0, null, mPlaylist.getPrev());
 				sendCmd(NotifyImpl.CMD_PLAY_EVENT, -1, 0, null, mPlaylist.getPrev());
 				break;
 		}
 	}
+
 
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean manual) {
@@ -245,14 +230,11 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 					}
 					break;
 				case CMD_STOP_EVENT:
-//				case CMD_NEXT_EVENT:
-//				case CMD_PREV_EVENT:
 				case CMD_SEEK_EVENT:
 					break;
 				case CMD_UPDATE_PROGRESS:
 					mPlaylist.setProgress(intValue);
 					final int progress = (int) ((intValue*100)/longValue);
-//					Logger.d(TAG, "CMD_UPDATE_PROGRESS=" + progress);
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -264,7 +246,6 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 					});
 					break;
 				case CMD_PLAY_REACH_END:
-//					sendCmd(NotifyImpl.CMD_NEXT_EVENT, -1, 0, null, mPlaylist.getNext());
 					sendCmd(NotifyImpl.CMD_PLAY_EVENT, -1, 0, null, mPlaylist.getNext());
 					Logger.i(TAG, "CMD_PLAY_REACH_END");
 					break;
@@ -283,7 +264,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		bindService(service, mSerConn, Service.BIND_AUTO_CREATE );
 	}
 
-	private boolean sendCmd(int cmd, int intValue, long longValue, String str, MusicInfo music){
+	private boolean sendCmd(int cmd, int intValue, long longValue, String str, final MusicInfo music){
 		boolean ret = false;
 		if(mService == null){
 			bindService();
@@ -291,11 +272,75 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		}
 		try {
 			if(mService.onNotify(cmd, intValue, longValue, str, music) == NotifyImpl.RET_OK){
+				if(cmd ==NotifyImpl. CMD_PLAY_EVENT){
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								initLrcPic(music);
+								playlist.mPlayListView.setSelection(mPlaylist.getCurrentIndex());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					});
+				}
 				ret = true;
 			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 		return ret;
+	}
+	private void initLrcPic(final MusicInfo music){
+			playing.setLrc(null);
+			playing.setImage(null);
+			String lrcPath = LrcPicManager.getLrc(music);
+			if(!TextUtils.isEmpty(lrcPath)){
+				playing.setLrc(lrcPath);
+			}else{
+				Logger.e(TAG, "setLrc addObserver");
+				music.addObserver(BaseActivity.this);
+			}
+			String picPath = LrcPicManager.getPic(music);
+			if(!TextUtils.isEmpty(picPath)){
+				playing.setImage(picPath);
+			}else{
+				Logger.e(TAG, "setImage addObserver");
+				music.addObserver(BaseActivity.this);
+			}
+	}
+
+	@Override
+	public void update(Observable observable, Object data) {
+		Logger.v(TAG, "update");
+		MusicInfo music = (MusicInfo)data;
+		if(!mPlaylist.get().equals(music)){
+			return;
+		}
+		switch(music.getChanged()){
+			case MusicInfo.LRCPATH_CHANGED:
+				final String lrcPath = music.getLrcPath();
+				if(!TextUtils.isEmpty(lrcPath)){
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							playing.setLrc(lrcPath);
+						}
+					});
+				}
+				break;
+			case MusicInfo.PICPATH_CHANGED:
+				final String picPath = music.getPicPath();
+				if(!TextUtils.isEmpty(picPath)){
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							playing.setImage(picPath);
+						}
+					});
+				}
+				break;
+		}
 	}
 }

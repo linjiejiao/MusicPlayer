@@ -1,13 +1,16 @@
 package cn.ljj.musicplayer.data;
 
 import java.util.Observable;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class MusicInfo extends Observable implements Parcelable{
 	public static final int LOCATION_LOCAL = 0;
 	public static final int LOCATION_ONLINE = 1;
+
+	public static final int LRCPATH_CHANGED = 10;
+	public static final int PICPATH_CHANGED = 11;
+	
 	
 	private int mLocation = LOCATION_LOCAL;
 	private String mName = null;
@@ -18,6 +21,7 @@ public class MusicInfo extends Observable implements Parcelable{
 	private String mPicPath = null;
 	private String mDurationStr = null;
 	private int mDuration = 0;
+	private int mChanged = -1;
 	private long _id = -1;
 	private long mListId = -1;
 	//baidu music
@@ -41,6 +45,7 @@ public class MusicInfo extends Observable implements Parcelable{
 	
 	private String mAppendix = null;
 	private String mContent = null;
+	public String TAG = "MusicInfo";
 
 	public MusicInfo() {
 	}
@@ -88,6 +93,8 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	public void setLrcPath(String lrcPath) {
 		mLrcPath = lrcPath;
+		setChanged(LRCPATH_CHANGED);
+		notifyObservers(this);
 	}
 
 	public String getPicPath() {
@@ -96,6 +103,8 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	public void setPicPath(String picPath) {
 		mPicPath = picPath;
+		setChanged(PICPATH_CHANGED);
+		notifyObservers(this);
 	}
 
 	public String getName() {
@@ -433,6 +442,13 @@ public class MusicInfo extends Observable implements Parcelable{
 		mListId = listId;
 	}
 
+	public int getChanged() {
+		return mChanged;
+	}
 
-	
+	public void setChanged(int changed) {
+		mChanged = changed;
+		setChanged();
+	}
+
 }

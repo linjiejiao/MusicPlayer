@@ -186,7 +186,7 @@ public class PlayListPersister {
 					String format = "";
 					if(name.contains(".")){
 						String temp = name;
-						name = temp.substring(0,temp.lastIndexOf(".")-1);
+						name = temp.substring(0,temp.lastIndexOf("."));
 						format = temp.substring(temp.lastIndexOf(".")+1);
 					}
 					MusicInfo music = new MusicInfo(name, path);
@@ -261,11 +261,9 @@ public class PlayListPersister {
 			return -1;
 		}
 		int listSize = db.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = " + musicId, null);
-		if(listSize != -1){
-			ContentValues values = new ContentValues();
-			values.put(MusicPlayerDatabase.LIST_SIZE, listSize-1);
-			db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id="+listId, null);
-		}
+		ContentValues values = new ContentValues();
+		values.put(MusicPlayerDatabase.LIST_SIZE, listSize-1);
+		db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id="+listId, null);
 		return listSize;
 	}
 

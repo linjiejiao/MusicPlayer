@@ -28,7 +28,6 @@ public class LrcParser{
 	}
 
 	public int parser(String str){
-		System.out.println("LRC parser start");
 		String line = null;
 		Pattern pLrc = Pattern.compile("\\[\\d{2}:\\d{2}.\\d{2}\\]");	//¸è´Ê
 		Pattern pTi = Pattern.compile("\\[ti:[^>]*\\]");	//title
@@ -103,16 +102,16 @@ public class LrcParser{
 		LyricLine lyricLine = new LyricLine();
 		lyricLine.setTime(0);
 		if(!TextUtils.isEmpty(title)){
-			info += "title:"+title;
+			info += title + "\r\n";
 		}
 		if(!TextUtils.isEmpty(artist)){
-			info += "; artist:"+artist;
+			info += artist + "\r\n";
 		}
 		if(!TextUtils.isEmpty(album)){
-			info += "; album:"+album;
+			info += album + "\r\n";
 		}
 		if(!TextUtils.isEmpty(by)){
-			info += "; by:"+by;
+			info += by;
 		}
 		if(!TextUtils.isEmpty(info)){
 			lyricLine.setLyric(info);
@@ -120,7 +119,6 @@ public class LrcParser{
 		}
 		Collections.sort(mLrcList,comparator); 
 		mCount = mLrcList.size();
-		System.out.println("LRC parser end");
 		return mCount;
 	}
 

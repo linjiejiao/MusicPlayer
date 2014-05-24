@@ -164,7 +164,7 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 	}
 
 	private void search(String keys){
-		mSearcher.search(keys,10,0);
+		mSearcher.search(keys,10,1);
 	}
 
 	@Override
