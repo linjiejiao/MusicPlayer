@@ -118,8 +118,10 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 			ContextMenuInfo menuInfo) {
 		if (menuInfo != null) {
             menu.setHeaderTitle(R.string.str_operate);
-            menu.add(0, MENU_DOWNLOAD , 0, R.string.str_download)
-            	.setOnMenuItemClickListener(this);
+            if(mPlaylist.get(0).getLocation() == MusicInfo.LOCATION_ONLINE){
+	            menu.add(0, MENU_DOWNLOAD , 0, R.string.str_download)
+	            	.setOnMenuItemClickListener(this);
+            }
             menu.add(0, MENU_DELETE, 1, R.string.str_remove)
             	.setOnMenuItemClickListener(this);
         }

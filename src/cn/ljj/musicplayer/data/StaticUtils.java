@@ -13,7 +13,7 @@ public class StaticUtils {
 						.getPath() + "/MusicPlayer/Lrc/";
 				File file = new File(lrcPath);
 				if (!file.exists()) {
-					file.mkdir();
+					file.mkdirs();
 				}
 				return lrcPath;
 			}
@@ -49,7 +49,7 @@ public class StaticUtils {
 						.getPath() + "/MusicPlayer/Pic/";
 				File file = new File(picPath);
 				if (!file.exists()) {
-					file.mkdir();
+					file.mkdirs();
 				}
 				return picPath;
 			}

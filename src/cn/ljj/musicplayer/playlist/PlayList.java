@@ -189,6 +189,10 @@ public class PlayList implements Observer {
 		setMusicList(mPersister.loadFromMediaStore(), null);
 		return mMusicList.size();
 	}
+	
+	public List<SavedList> getAllSavedPlayList() {
+		return mPersister.getAllSavedPlayList();
+	}
 
 	public int persist(String listName, boolean cover){
 		return mPersister.persist(mMusicList, listName, cover);

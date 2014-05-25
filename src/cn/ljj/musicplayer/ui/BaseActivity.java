@@ -13,8 +13,10 @@ import cn.ljj.musicplayer.player.service.PlayService;
 import cn.ljj.musicplayer.playlist.PlayList;
 import cn.ljj.musicplayer.ui.lrc.LrcPicManager;
 import android.support.v4.app.Fragment;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -25,6 +27,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -130,7 +133,9 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 			case R.id.action_add:
-				mPlaylist.deletePlayList("123");
+//				mPlaylist.deletePlayList("123");
+				PlayListDialog listDialog = new PlayListDialog(this);
+				listDialog.show();
 				break;
 			case R.id.action_search:
 				if(playlist.mSearchView.getVisibility() == View.VISIBLE && mViewPager.getCurrentItem() == 0){
@@ -342,5 +347,30 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 				}
 				break;
 		}
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		switch (keyCode) {
+	    	case KeyEvent.KEYCODE_BACK:
+	    		AlertDialog.Builder adb = new AlertDialog.Builder(this);
+	    		adb.setTitle("警告");
+	    		adb.setMessage("确定要退出播放器？");
+	    		adb.setPositiveButton("退出", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				});
+	    		adb.setNegativeButton("后台播放", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						moveTaskToBack(true);
+					}
+				});
+	    		adb.show();
+	    		return true;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 }
