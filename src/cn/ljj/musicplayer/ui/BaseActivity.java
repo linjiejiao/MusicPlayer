@@ -51,6 +51,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		mPlaylist = PlayList.getPlayList(this);
 		initViews();
 		bindService();
+		
 	}
 
 	private void initViews(){
