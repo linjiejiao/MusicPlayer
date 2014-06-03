@@ -122,6 +122,7 @@ public class PlayList implements Observer {
 	public void add(MusicInfo music) {
 		Logger.e(TAG , "add music="+music);
 		mMusicList.add(music);
+		music.addObserver(this);
 		if(mPlayListName != null){
 			mPersister.persist(music, mPlayListName);
 		}
@@ -130,8 +131,8 @@ public class PlayList implements Observer {
 	public void remove(int index) {
 		Logger.e(TAG , "remove index="+index);
 		if(mPlayListName != null){
-			long deleteId = mMusicList.get(index).getId();
-			long listId = mMusicList.get(index).getListId();
+			long deleteId = get(index).getId();
+			long listId = get(index).getListId();
 			mPersister.removeMusic(deleteId,listId);
 		}
 		mMusicList.remove(index);
@@ -188,6 +189,10 @@ public class PlayList implements Observer {
 		setMusicList(mPersister.loadFromMediaStore(), null);
 		return mMusicList.size();
 	}
+	
+	public List<SavedList> getAllSavedPlayList() {
+		return mPersister.getAllSavedPlayList();
+	}
 
 	public int persist(String listName, boolean cover){
 		return mPersister.persist(mMusicList, listName, cover);
@@ -209,9 +214,10 @@ public class PlayList implements Observer {
 	@Override
 	public void update(Observable observable, Object data) {
 		if(data != null){
-			long changeId = ((MusicInfo)data).getId();
+			MusicInfo music = (MusicInfo)data;
+			long changeId = music.getId();
 			if(changeId != -1){
-				
+				mPersister.update(music);
 			}
 		}
 	}

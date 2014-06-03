@@ -12,6 +12,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
 import android.util.Xml;
 
 public class SearchResualtPaser {
@@ -169,14 +170,22 @@ public class SearchResualtPaser {
 			JSONObject data = rootJson.getJSONObject("data");
 			JSONArray songList = data.getJSONArray("songList");
 			JSONObject item = songList.getJSONObject(0);
-			info.setSongPicSmall( item.getString("songPicSmall"));
-			info.setSongPicBig(item.getString("songPicBig"));
-			info.setSongPicRadio(item.getString("songPicRadio"));
-			info.setMusicPath(item.getString("songLink"));
+//			String
+			info.setSongPicSmall(fixLink(item.getString("songPicSmall")));
+			info.setSongPicBig(fixLink(item.getString("songPicBig")));
+			info.setSongPicRadio(fixLink(item.getString("songPicRadio")));
+			info.setMusicPath(fixLink(item.getString("songLink")));
 			info.setFormat(item.getString("format"));
 			info.setRate(item.getInt("rate"));
 			info.setSize(item.getInt("size"));
 		}
 	}
 
+	private static String fixLink(String link){
+		//"http://c.hiphotos.baidu.com/ting/pic/item/http://qukufile2.qianqian.com/data2/pic/115439298/115439298.jpg.jpg"
+		if(link.contains("http://")){
+			link = link.substring(link.lastIndexOf("http://"));
+		}
+		return link;
+	}
 }

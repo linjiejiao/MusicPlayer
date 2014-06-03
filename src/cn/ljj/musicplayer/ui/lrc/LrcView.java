@@ -62,15 +62,15 @@ public class LrcView extends FrameLayout{
 		mLrcMask.setId(LRCMASK_ID);
 		lp = new FrameLayout.LayoutParams(
 				LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
-//		lp.setMargins(LRC_MARGIN, LRC_MARGIN, LRC_MARGIN, LRC_MARGIN);
 		lp.setMargins(0, 0, 0, 0);
 		addView(mLrcMask,lp);
 	}
 
-	public void initScrollViews(List<LyricLine> lrcs){
+	public synchronized void initScrollViews(List<LyricLine> lrcs){
 		mLrcScroll.removeAllViews();
 		addLinearLayouttoSroll();
 		mLrcTexts.clear();
+		mCurrentPosistion = 0;
 		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
 				LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
 		lp.topMargin = LRC_MARGIN;
@@ -151,11 +151,15 @@ public class LrcView extends FrameLayout{
 	Runnable mAutoScrollRun = new Runnable() {
 		@Override
 		public void run() {
-			scrollToPlaying();
+			try {
+				scrollToPlaying();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	};
 
-	public void updateProgress(int  progress, int duration){
+	public synchronized void updateProgress(int  progress, int duration){
 		if(mLrcTexts.isEmpty()){
 			return ;
 		}

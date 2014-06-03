@@ -10,6 +10,8 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
+import cn.ljj.musicplayer.database.Logger;
+
 public class Downloader implements Runnable, Defines {
 	public interface DownloadCallback {
 		public void onProgressChange(int length, int finished);
@@ -23,6 +25,7 @@ public class Downloader implements Runnable, Defines {
 	String mSavePath = null;
 	boolean mCancel = false;
 	DownloadCallback mCallback = null;
+	private String TAG = "Downloader";
 
 	public Downloader(String url, String savePath) {
 		mUrl = url;
@@ -57,6 +60,7 @@ public class Downloader implements Runnable, Defines {
 			return;
 		}
 		if ((mSavePath == null) || (mUrl == null)) {
+			Logger.e(TAG , "run mSavePath="+mSavePath+"; mUrl="+mUrl);
 			onFaild(ERROR_PARAMETER);
 			return;
 		}

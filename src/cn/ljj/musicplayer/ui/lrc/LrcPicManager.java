@@ -5,12 +5,16 @@ import java.util.List;
 
 import android.text.TextUtils;
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.data.StaticUtils;
+import cn.ljj.musicplayer.database.Logger;
 import cn.ljj.musicplayer.files.BaiduMusicSearch;
 import cn.ljj.musicplayer.files.BaiduMusicSearch.SeachCallback;
 import cn.ljj.musicplayer.files.DownloadFactory;
 import cn.ljj.musicplayer.files.Downloader.DownloadCallback;
 
 public class LrcPicManager {
+	private static String TAG  = "LrcPicManager";
+
 	public static String getLrc(final MusicInfo music){
 		String path = music.getLrcPath();
 		if(!TextUtils.isEmpty(path)){
@@ -18,9 +22,17 @@ public class LrcPicManager {
 			if(file.exists()){
 				return path;
 			}
+		}else{
+			String saveName = music.getName() + ".Lrc";
+			path =  StaticUtils.getLrcPath() + saveName;
+			File file = new File(path);
+			if(file.exists()){
+				music.setLrcPath(path);
+				return path;
+			}
 		}
 		String link = music.getLrclink();
-		if(!TextUtils.isEmpty(link)){
+		if(TextUtils.isEmpty(link)){
 			BaiduMusicSearch mSearcher = new BaiduMusicSearch();
 			mSearcher.setCallBack(new SeachCallback() {
 				@Override
@@ -30,33 +42,34 @@ public class LrcPicManager {
 						if(!TextUtils.isEmpty(lrc)){
 							music.setLrclink(lrc);
 							downloadLrc(music, lrc);
+							break;
 						}
 					}
 				}
 			});
-			mSearcher.search(music.getName(), 3, 0);
+			mSearcher.search(music.getName(), 3, 1);
 		}else{
 			downloadLrc(music, link);
 		}
-		return path;
+		return null;
 	}
 
 	private static void downloadLrc(final MusicInfo music, String link){
-		String savePath = music.getName() + ".Lrc";
-		DownloadFactory.DownloadLrc(link, savePath, new DownloadCallback() {
-			
+		String saveName = music.getName() + ".Lrc";
+		DownloadFactory.DownloadLrc(link, saveName, new DownloadCallback() {
 			@Override
 			public void onProgressChange(int length, int finished) {
 			}
 			
 			@Override
 			public void onFinished(String filePath) {
+				Logger.i(TAG , "downloadLrc onFinished filePath="+filePath);
 				music.setLrcPath(filePath);
-				music.notifyObservers(music);
 			}
 			
 			@Override
 			public void onFaild(int errorCode) {
+				Logger.e(TAG , "downloadLrc onFaild errorCode = "+errorCode);
 			}
 		});
 	}
@@ -68,32 +81,42 @@ public class LrcPicManager {
 			if(file.exists()){
 				return path;
 			}
+		}else{
+			String saveName = music.getName() + ".Lrc";
+			path =  StaticUtils.getLrcPath() + saveName;
+			File file = new File(path);
+			if(file.exists()){
+				music.setLrcPath(path);
+				return path;
+			}
 		}
 		String link = music.getSongPicBig();
-		if(!TextUtils.isEmpty(link)){
+		if(TextUtils.isEmpty(link)){
 			BaiduMusicSearch mSearcher = new BaiduMusicSearch();
 			mSearcher.setCallBack(new SeachCallback() {
 				@Override
 				public void onSearchResult(List<MusicInfo> resualt) {
+//					Logger.e(TAG , "getPic onSearchResult resualt="+resualt);
 					for(MusicInfo musicInfo:resualt){
-						String pic = musicInfo.getSongPicBig();
+						String pic = musicInfo.getSongPicRadio();
 						if(!TextUtils.isEmpty(pic)){
-							music.setSongPicBig(pic);
+							music.setSongPicRadio(pic);
 							downloadPic(music, pic);
+							break;
 						}
 					}
 				}
 			});
-			mSearcher.search(music.getName(), 3, 0);
+			mSearcher.search(music.getName(), 3, 1);
 		}else{
 			downloadPic(music, link);
 		}
-		return path;
+		return null;
 	}
 
 	private static void downloadPic(final MusicInfo music, String link){
-		String savePath = music.getName() + ".jpg";
-		DownloadFactory.DownloadLrc(link, savePath, new DownloadCallback() {
+		String saveName = music.getName() + ".jpg";
+		DownloadFactory.DownloadPic(link, saveName, new DownloadCallback() {
 			
 			@Override
 			public void onProgressChange(int length, int finished) {
@@ -101,12 +124,13 @@ public class LrcPicManager {
 			
 			@Override
 			public void onFinished(String filePath) {
+				Logger.i(TAG , "downloadPic onFinished filePath="+filePath);
 				music.setPicPath(filePath);
-				music.notifyObservers(music);
 			}
 			
 			@Override
 			public void onFaild(int errorCode) {
+				Logger.e(TAG , "downloadPic onFaild errorCode = "+errorCode);
 			}
 		});
 	}

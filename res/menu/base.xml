@@ -4,19 +4,19 @@
         android:id="@+id/action_add"
         android:icon="@drawable/ic_action_add"
         android:orderInCategory="100"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:title="@string/action_add"/>
     <item
         android:id="@+id/action_search"
         android:icon="@drawable/ic_action_search"
         android:orderInCategory="100"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:title="@string/action_search"/>
     <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_action_setting"
         android:orderInCategory="100"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:title="@string/action_settings"/>
 
 </menu>

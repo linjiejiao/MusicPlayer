@@ -8,6 +8,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.database.Logger;
 
 public class BaiduMusicSearch implements Runnable,Defines{
 	public interface SeachCallback{
@@ -15,6 +16,7 @@ public class BaiduMusicSearch implements Runnable,Defines{
 	}
 	SeachCallback mCallback = null;
 	private String mUrl = null;
+	private String TAG = "BaiduMusicSearch";
 	public void setCallBack(SeachCallback callbakc) {
 		mCallback = callbakc;
 	}
@@ -29,8 +31,9 @@ public class BaiduMusicSearch implements Runnable,Defines{
 	public void search(String keys, int pageSize, int pageNo){
 		try {
 			mUrl = BAIDU_QUERY_BASE + "&page_size=" + pageSize
-					+ "&page_no=" + pageNo;
-			mUrl += URLEncoder.encode("&query="+keys, "UTF-8");
+					+ "&page_no=" + pageNo + "&query=";
+			mUrl += URLEncoder.encode(keys, "UTF-8");
+			Logger.i(TAG , "search mUrl="+mUrl);
 			new Thread(this).start();
 		} catch (UnsupportedEncodingException e) {
 			onSearchResult(null);
