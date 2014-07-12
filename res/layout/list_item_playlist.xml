@@ -2,30 +2,25 @@
 <!-- 播放列表 的列表的一项 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="15sp" >
+
     <TextView
-        android:id="@+id/list_index"
-        android:layout_width="40sp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:textSize="20sp"/>
-    
-	<TextView
         android:id="@+id/list_name"
         android:layout_width="0sp"
         android:layout_height="wrap_content"
-        android:layout_weight="1.0"
-        android:text="@string/st_playlist_name" 
         android:layout_gravity="center_vertical"
-        android:textSize="20sp"/>
-	
+        android:layout_weight="1.0"
+        android:text="@string/str_playlist_name"
+        android:textSize="20sp" />
+
     <TextView
-        android:id="@+id/playing"
+        android:id="@+id/text_isplaying"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/st_playing" 
         android:layout_gravity="center_vertical"
-        android:textSize="20sp"/>
-
+        android:text="@string/str_playing"
+        android:textSize="20sp" />
 
 </LinearLayout>

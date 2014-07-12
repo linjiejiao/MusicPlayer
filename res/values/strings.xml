@@ -10,7 +10,7 @@
     <string name="str_name">歌曲名</string>
     <string name="str_artist">歌手</string>
     <string name="str_album">专辑</string>
-    <string name="str_remove">从列表中移除</string>
+    <string name="str_remove">移除</string>
     <string name="str_operate">操作</string>
     <string name="str_search_hint">王力宏</string>
     <string name="str_lrc_not_found">歌词没找到！</string>
@@ -18,7 +18,9 @@
     <string name="str_add_playlist">新建播放列表</string>
     <string name="str_wait_saving">正在保存，请稍等……</string>
     <string name="str_add">+</string>
-    <string name="st_playlist_name">播放列表名字</string>
-    <string name="st_playing">正在播放</string>
+    <string name="str_playlist_name">播放列表名字</string>
+    <string name="str_list_name">名字:</string>
+    <string name="str_playing">正在播放</string>
+    <string name="str_add_music">添加歌曲</string>
 
 </resources>

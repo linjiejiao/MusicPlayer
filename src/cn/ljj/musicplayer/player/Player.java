@@ -44,6 +44,10 @@ public class Player {
 	}
 
 	protected boolean play(MusicInfo music, boolean reset) {
+		if(music == null){
+			Logger.e(TAG, "play music=" + music);
+			return false;
+		}
 		Logger.d(TAG, "play music=" + music);
 		try {
 			if(reset){

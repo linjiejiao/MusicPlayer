@@ -9,14 +9,12 @@ import cn.ljj.musicplayer.ui.lrc.LrcView;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-public class PlayingFragment extends Fragment implements OnClickListener {
+public class PlayingFragment extends BaseFragment{
 	View mRootView = null;
 	public LrcView lrc_view = null;
 	private ImageView mSongPic = null;
@@ -84,5 +82,10 @@ public class PlayingFragment extends Fragment implements OnClickListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	@Override
+	public boolean pressBack() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

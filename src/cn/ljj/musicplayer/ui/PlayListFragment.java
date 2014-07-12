@@ -1,12 +1,10 @@
 package cn.ljj.musicplayer.ui;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
-import cn.ljj.musicplayer.database.MusicPlayerDatabase;
 import cn.ljj.musicplayer.files.BaiduMusicSearch;
 import cn.ljj.musicplayer.files.BaiduMusicSearch.SeachCallback;
 import cn.ljj.musicplayer.files.Defines;
@@ -15,9 +13,13 @@ import cn.ljj.musicplayer.files.Downloader.DownloadCallback;
 import cn.ljj.musicplayer.player.service.INotify;
 import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.playlist.PlayList;
+import cn.ljj.musicplayer.playlist.SavedList;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.v4.app.Fragment;
+import android.provider.MediaStore;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -28,145 +30,225 @@ import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 
-public class PlayListFragment extends Fragment implements Defines, OnItemClickListener,
-			OnMenuItemClickListener, OnClickListener, SeachCallback{
+public class PlayListFragment extends BaseFragment implements Defines,
+		OnItemClickListener, OnMenuItemClickListener, SeachCallback {
+	static final int REQ_CODE_GET_MUSIC = 10;
 	static final int MENU_DELETE = 0;
 	static final int MENU_DOWNLOAD = 1;
+	static final int MENU_ADD_MUSIC = 2;
 	static String TAG = "PlayListFragment";
-	View mRootView = null;
-	ListView mPlayListView = null;
-	LinearLayout mSearchView = null;
-	Button mBtnSearch = null;
-	EditText mEditSearch = null;
-	PlayList mPlaylist = null;
+	private View mRootView = null;
+	private ListView mListView = null;
+	private LinearLayout mSearchView = null;
+	private Button mBtnSearch = null;
+	private EditText mEditSearch = null;
+	private PlayList mPlaylist = null;
+	private List<SavedList> mAllList = new ArrayList<SavedList>();;
+	private List<MusicInfo> mMusicList = new ArrayList<MusicInfo>();
+	private BaseAdapter mListAdapter = null;
+	private SavedListAdapter mSavedListAdapter = null;
+	private PlayListAdapter mPlayListAdapter = null;
 	private INotify mBaseActivityCallBack = null;
-	BaiduMusicSearch mSearcher = null;
+	private BaiduMusicSearch mSearcher = null;
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		mRootView = inflater.inflate(R.layout.fragment_playlist, container, false);
-//		mPlayer =  Player.getPlayer();
+		mRootView = inflater.inflate(R.layout.fragment_playlist, container,
+				false);
 		mPlaylist = PlayList.getPlayList(getActivity());
-		mPlaylist.load("123");
-		if(mPlaylist.isEmpty()){
+		mPlaylist.load("MediaStore");
+		if (mPlaylist.isEmpty()) {
 			mPlaylist.loadFromMediaStore();
-			mPlaylist.persist("123", true);
+			mPlaylist.persist("MediaStore", true);
 		}
 		mSearcher = new BaiduMusicSearch();
 		mSearcher.setCallBack(this);
-		initViews();
+		try {
+			initViews();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return mRootView;
 	}
 
-	private void initViews(){
-		mPlayListView = (ListView) mRootView.findViewById(R.id.playlist_view);
+	public ListView getListView() {
+		return mListView;
+	}
+
+	public LinearLayout getSearchView() {
+		return mSearchView;
+	}
+
+	private SavedListAdapter getSavedListAdapter(boolean update) {
+		if (update || mSavedListAdapter == null) {
+			mAllList.clear();
+			mAllList.addAll(mPlaylist.getAllSavedPlayList());
+			mSavedListAdapter = new SavedListAdapter(getActivity(), mAllList);
+			mSavedListAdapter.setAddButtonListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View arg0) {
+					DialogAddList dal = new DialogAddList(getActivity(),
+					new ListChangeListner() {
+						@Override
+						public void onListChange() {
+//							mAllList.clear();
+//							mAllList.addAll(mPlaylist.getAllSavedPlayList());
+//							mSavedListAdapter.notifyDataSetChanged();
+							getListView().setAdapter(getSavedListAdapter(true));
+						}
+					});
+					dal.show();
+				}
+			});
+		}
+		return mSavedListAdapter;
+	}
+
+	private PlayListAdapter getPlayListAdapter(boolean update) {
+		if (update || mPlayListAdapter == null) {
+			mMusicList.clear();
+			mMusicList.addAll(mPlaylist.getMusicList());
+			mPlayListAdapter = new PlayListAdapter(getActivity(), mMusicList);
+		}
+		return mPlayListAdapter;
+	}
+
+	private void initViews() {
+		mListView = (ListView) mRootView.findViewById(R.id.playlist_view);
 		mSearchView = (LinearLayout) mRootView.findViewById(R.id.search_view);
 		mBtnSearch = (Button) mRootView.findViewById(R.id.btn_search);
 		mEditSearch = (EditText) mRootView.findViewById(R.id.edit_search_keys);
 		mBtnSearch.setOnClickListener(this);
-		SimpleAdapter listAdapter = prepareListDate(mPlaylist.getMusicList());
-		mPlayListView.setAdapter(listAdapter);
-		mPlayListView.setOnItemClickListener(this);
-		mPlayListView.setOnCreateContextMenuListener(this);
-	}
-
-	private SimpleAdapter prepareListDate(List<MusicInfo> data){
-		ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
-		int id = 1;
-		for (MusicInfo music : data) {
-			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("id", id++ + "");
-			map.put(MusicPlayerDatabase.NAME, music.getName());
-			map.put(MusicPlayerDatabase.DURATION, music.getDurationStr());
-			map.put(MusicPlayerDatabase.ARTIST, music.getArtist());
-			map.put(MusicPlayerDatabase.ALBUM, music.getAlbum());
-			list.add(map);
-		}
-		String[] keys = new String[]{
-			"id",
-			MusicPlayerDatabase.NAME,
-			MusicPlayerDatabase.DURATION,
-			MusicPlayerDatabase.ARTIST,
-			MusicPlayerDatabase.ALBUM
-		};
-		int[] ids = new int[] {
-				R.id.text_index,
-				R.id.text_name,
-				R.id.text_duration,
-				R.id.text_artist,
-				R.id.text_album };
-		return new SimpleAdapter(getActivity(), list, R.layout.list_item_music, keys, ids);
+		mListAdapter = getSavedListAdapter(true);
+		mListView.setAdapter(mListAdapter);
+		mListView.setOnItemClickListener(this);
+		mListView.setOnCreateContextMenuListener(this);
 	}
 
 	@Override
-	public void onItemClick(AdapterView<?> adapterView, View view, int index, long arg3) {
-		Logger.i(TAG , "onItemClick index="+index);
-		MusicInfo music = mPlaylist.get(index);
-		mPlaylist.setProgress(-1);
-		if(sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)){
-			mPlaylist.setCurrentIndex(index);
+	public void onItemClick(AdapterView<?> adapterView, View view, int index,
+			long arg3) {
+		Logger.i(TAG, "onItemClick index=" + index);
+		if (adapterView.getAdapter() instanceof SavedListAdapter) {
+			SavedList list = mAllList.get(index);
+			mPlaylist.load(list.getListName());
+			mListAdapter = getPlayListAdapter(true);
+			mListView.setAdapter(mListAdapter);
+		} else if (adapterView.getAdapter() instanceof PlayListAdapter) {
+			MusicInfo music = mPlaylist.get(index);
+			mPlaylist.setProgress(-1);
+			if (sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)) {
+				mPlaylist.setCurrentIndex(index);
+			}
+		} else {
+			Logger.e(TAG, "Error Adapter Type");
 		}
 	}
+
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		if (menuInfo != null) {
-            menu.setHeaderTitle(R.string.str_operate);
-            if(mPlaylist.get(0).getLocation() == MusicInfo.LOCATION_ONLINE){
-	            menu.add(0, MENU_DOWNLOAD , 0, R.string.str_download)
-	            	.setOnMenuItemClickListener(this);
-            }
-            menu.add(0, MENU_DELETE, 1, R.string.str_remove)
-            	.setOnMenuItemClickListener(this);
-        }
+			// jiajian
+			menu.setHeaderTitle(R.string.str_operate);
+			if (mListAdapter instanceof SavedListAdapter) {
+				menu.add(0, MENU_ADD_MUSIC, 0, R.string.str_add_music)
+				.setOnMenuItemClickListener(this);
+			}else{
+				if (mPlaylist.get(0).getLocation() == MusicInfo.LOCATION_ONLINE) {
+					menu.add(0, MENU_DOWNLOAD, 0, R.string.str_download)
+							.setOnMenuItemClickListener(this);
+				}
+			}
+			menu.add(0, MENU_DELETE, 1, R.string.str_remove)
+					.setOnMenuItemClickListener(this);
+		}
 	}
 
 	@Override
 	public boolean onMenuItemClick(MenuItem menu) {
-		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menu.getMenuInfo(); 
-		int id = (int)info.id;
-		switch(menu.getItemId()){
+		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menu
+				.getMenuInfo();
+		int id = (int) info.id;
+		Logger.e(TAG, "onMenuItemClick id=" + id);
+		switch (menu.getItemId()) {
 		case MENU_DELETE:
 			removeFromList(id);
 			break;
 		case MENU_DOWNLOAD:
 			final MusicInfo music = mPlaylist.get(id);
 			String saveName = music.getName() + "." + music.getFormat();
-			DownloadFactory.DownloadMusic(music.getMusicPath(), saveName, new DownloadCallback() {
-				@Override
-				public void onProgressChange(int length, int finished) {
-					Logger.e(TAG, "onProgressChange "+finished + "/" + length);
-				}
-				@Override
-				public void onFinished(String filePath) {
-					music.setMusicPath(filePath);
-					Logger.e(TAG, "onFinished filePath="+filePath);
-				}
-				@Override
-				public void onFaild(int errorCode) {
-					Logger.e(TAG, "onFaild errorCode="+errorCode);
-				}
-			});
+			DownloadFactory.DownloadMusic(music.getMusicPath(), saveName,
+					new DownloadCallback() {
+						@Override
+						public void onProgressChange(int length, int finished) {
+							Logger.e(TAG, "onProgressChange " + finished + "/"
+									+ length);
+						}
+
+						@Override
+						public void onFinished(String filePath) {
+							music.setMusicPath(filePath);
+							Logger.e(TAG, "onFinished filePath=" + filePath);
+						}
+
+						@Override
+						public void onFaild(int errorCode) {
+							Logger.e(TAG, "onFaild errorCode=" + errorCode);
+						}
+					});
+			break;
+		case MENU_ADD_MUSIC:
+			mPlaylist.load(mAllList.get(id).getListName());
+			Intent innerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+			innerIntent.setType("audio/*");
+			Intent wrapperIntent = Intent.createChooser(innerIntent, null);
+			startActivityForResult(wrapperIntent, REQ_CODE_GET_MUSIC);
 			break;
 		}
 		return false;
 	}
-	
-	private void removeFromList(int id){
-		mPlaylist.remove(id);
-		SimpleAdapter listAdapter = prepareListDate(mPlaylist.getMusicList());
-		mPlayListView.setAdapter(listAdapter);
-		mPlayListView.setSelection(id-1);
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch(requestCode){
+		case REQ_CODE_GET_MUSIC:
+			if(data != null && data.getData() != null){
+				Uri uri = data.getData();
+				Logger.e(TAG, "onActivityResult uri="+uri);
+				MusicInfo music = getMusicInfo(uri);
+				mPlaylist.add(music);
+				mListAdapter = getPlayListAdapter(true);
+				mListView.setAdapter(mListAdapter);
+			}
+			break;
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	private void search(String keys){
-		mSearcher.search(keys,10,1);
+	private void removeFromList(int id) {
+		if (mListAdapter instanceof SavedListAdapter) {
+			mPlaylist.deletePlayList(mAllList.get(id).getListName());
+			mAllList.remove(id);
+			getSavedListAdapter(false).notifyDataSetChanged();
+		} else if (mListAdapter instanceof PlayListAdapter) {
+			mPlaylist.remove(id);
+			mMusicList.remove(id);
+			getPlayListAdapter(false).notifyDataSetChanged();
+		}
+	}
+
+	private void search(String keys) {
+		mSearcher.search(keys, 10, 1);
 	}
 
 	@Override
@@ -174,21 +256,22 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 		getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				SimpleAdapter listAdapter = prepareListDate(resualt);
-				mPlayListView.setAdapter(listAdapter);
-				mPlaylist.setMusicList(resualt, null);
+				// BaseAdapter listAdapter = prepareListDate(resualt);
+				// mListView.setAdapter(listAdapter);
+				// mPlaylist.setMusicList(resualt, null);
 			}
 		});
 	}
 
+
 	@Override
 	public void onClick(View v) {
-		switch(v.getId()){
-			case R.id.btn_search:
-					search(mEditSearch.getText().toString());
-				break;
-			default:
-				
+		switch (v.getId()) {
+		case R.id.btn_search:
+			search(mEditSearch.getText().toString());
+			break;
+		default:
+
 		}
 	}
 
@@ -196,18 +279,93 @@ public class PlayListFragment extends Fragment implements Defines, OnItemClickLi
 		mBaseActivityCallBack = callback;
 	}
 
-	private boolean sendCmd(int cmd, int intValue, long longValue, String str, MusicInfo music){
+	private boolean sendCmd(int cmd, int intValue, long longValue, String str,
+			MusicInfo music) {
 		boolean ret = false;
-		if(mBaseActivityCallBack == null){
+		if (mBaseActivityCallBack == null) {
 			return ret;
 		}
 		try {
-			if(mBaseActivityCallBack.onNotify(cmd, intValue, longValue, str, music) == NotifyImpl.RET_OK){
+			if (mBaseActivityCallBack.onNotify(cmd, intValue, longValue, str,
+					music) == NotifyImpl.RET_OK) {
 				ret = true;
 			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 		return ret;
+	}
+
+	public boolean pressBack() {
+		if (mListAdapter instanceof SavedListAdapter) {
+			return false;
+		} else if (mListAdapter instanceof PlayListAdapter) {
+			mListAdapter = getSavedListAdapter(true);
+			mListView.setAdapter(mListAdapter);
+			return true;
+		}
+		return false;
+	}
+
+	interface ListChangeListner{
+		public void onListChange();
+	}
+
+	private MusicInfo getMusicInfo(Uri uri) {
+		MusicInfo music = null;
+		if (uri.toString().startsWith("content://media/")) {
+			Cursor c = null;
+			try {
+				c = getActivity().getContentResolver().query(uri, null, null,
+						null, null);
+				if (c.moveToFirst()) {
+					int isMusic = c
+							.getInt(c
+									.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
+					if (isMusic == 1) {
+						String name = c
+								.getString(c
+										.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME));
+						String path = c
+								.getString(c
+										.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+						String duration = c
+								.getString(c
+										.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
+						String artist = c
+								.getString(c
+										.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+						String album = c
+								.getString(c
+										.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+						int durationInt = Integer.parseInt(duration);
+						String format = "";
+						if (name.contains(".")) {
+							String temp = name;
+							name = temp.substring(0, temp.lastIndexOf("."));
+							format = temp.substring(temp.lastIndexOf(".") + 1);
+						}
+						music = new MusicInfo(name, path);
+						music.setDuration(durationInt);
+						music.setAlbum(album);
+						music.setArtist(artist);
+						music.setFormat(format);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (c != null) {
+					c.close();
+				}
+			}
+		} else {
+			String path = uri.getPath();
+			String name = path.substring(path.lastIndexOf("/")+1,path.lastIndexOf("."));
+			music = new MusicInfo(name, path);
+			Logger.e(TAG, "onActivityResult path=" + path);
+		}
+
+		return music;
 	}
 }

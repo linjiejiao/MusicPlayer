@@ -36,20 +36,20 @@ public class MusicPlayerDatabase extends SQLiteOpenHelper{
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		String cmd = "CREATE TABLE " + TABLE_MUSICS 
-				+ " ( _id integer primary key autoincrement,"
-				+ LIST_ID + " integer, "
-				+ NAME + " varchar(20), "
-				+ ARTIST + " varchar(50), "
-				+ ALBUM + " varchar(50), "
-				+ MUSIC_PATH + " varchar(50), "
-				+ PIC_PATH + " varchar(50), "
-				+ LRC_PATH + " varchar(50), "
-				+ DURATION + " integer)";
+				+ " ( _id INTEGER primary key autoincrement,"
+				+ LIST_ID + " INTEGER, "
+				+ NAME + " TEXT, "
+				+ ARTIST + " TEXT, "
+				+ ALBUM + " TEXT, "
+				+ MUSIC_PATH + " TEXT, "
+				+ PIC_PATH + " TEXT, "
+				+ LRC_PATH + " TEXT, "
+				+ DURATION + " TEXT)";
 		db.execSQL(cmd);
 		cmd = "CREATE TABLE " + TABLE_LIST
-				+ " ( _id integer primary key autoincrement, "
-				+ LIST_NAME + " varchar(20), "
-				+ LIST_SIZE + " integer)";
+				+ " ( _id INTEGER primary key autoincrement, "
+				+ LIST_NAME + " TEXT, "
+				+ LIST_SIZE + " INTEGER)";
 		db.execSQL(cmd);
 	}
 

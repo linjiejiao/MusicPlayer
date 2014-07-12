@@ -12,7 +12,6 @@ import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.player.service.PlayService;
 import cn.ljj.musicplayer.playlist.PlayList;
 import cn.ljj.musicplayer.ui.lrc.LrcPicManager;
-import android.support.v4.app.Fragment;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
@@ -27,7 +26,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -75,26 +73,26 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		mSeekPlayProgress.setOnSeekBarChangeListener(this);
 	}
 
-	PlayingFragment playing = null;
-	PlayListFragment playlist = null;
-	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+	public class SectionsPagerAdapter extends FragmentPagerAdapter {
+		public static final int POSITION_PLAYLIST_FRAGMENT = 0;
+		public static final int POSITION_PLAYING_FRAGMENT = 1;
+		private PlayingFragment mPlaying;
+		private PlayListFragment mPlaylist;
 		public SectionsPagerAdapter(FragmentManager fm) {
 			super(fm);
+			mPlaylist = new PlayListFragment();
+			mPlaying = new PlayingFragment();
+			mPlaylist.setCallback(mCallback);
 		}
 
 		@Override
-		public Fragment getItem(int position) {
-			Fragment fragment = null;
-			if(position == 0){
-				playlist = new PlayListFragment();
-				playlist.setCallback(mCallback);
-				fragment = playlist;
+		public BaseFragment getItem(int position) {
+			if(position == POSITION_PLAYLIST_FRAGMENT){
+				return mPlaylist;
 			}else{
-				playing = new PlayingFragment();
-				fragment = playing;
+				return mPlaying;
 			}
-			return fragment;
 		}
 
 		@Override
@@ -112,6 +110,21 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			}
 			return "other";
 		}
+	}
+
+	private BaseFragment getCurrentFragment() {
+		int position = mViewPager.getCurrentItem();
+		return mSectionsPagerAdapter.getItem(position);
+	}
+
+	private PlayingFragment getPlayingFragment() {
+		return (PlayingFragment)mSectionsPagerAdapter.getItem(
+				SectionsPagerAdapter.POSITION_PLAYING_FRAGMENT);
+	}
+
+	private PlayListFragment getPlayListFragment() {
+		return (PlayListFragment)mSectionsPagerAdapter.getItem(
+				SectionsPagerAdapter.POSITION_PLAYLIST_FRAGMENT);
 	}
 
 	@Override
@@ -133,16 +146,12 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
-			case R.id.action_add:
-//				mPlaylist.deletePlayList("123");
-				PlayListDialog listDialog = new PlayListDialog(this);
-				listDialog.show();
-				break;
 			case R.id.action_search:
-				if(playlist.mSearchView.getVisibility() == View.VISIBLE && mViewPager.getCurrentItem() == 0){
-					playlist.mSearchView.setVisibility(View.GONE);
+				if(getPlayListFragment().getSearchView().getVisibility() == View.VISIBLE
+						&& mViewPager.getCurrentItem() == 0){
+					getPlayListFragment().getSearchView().setVisibility(View.GONE);
 				}else{
-					playlist.mSearchView.setVisibility(View.VISIBLE);
+					getPlayListFragment().getSearchView().setVisibility(View.VISIBLE);
 					mViewPager.setCurrentItem(0);
 				}
 				break;
@@ -247,7 +256,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 							mTextTimeAll.setText(StaticUtils.getDispTime((int)longValue));
 							mTextTimePassed.setText(StaticUtils.getDispTime(intValue));
 							mSeekPlayProgress.setProgress(progress);
-							playing.onProgressChange(intValue, (int)longValue);
+							getPlayingFragment().onProgressChange(intValue, (int)longValue);
 						}
 					});
 					break;
@@ -284,7 +293,8 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 						public void run() {
 							try {
 								initLrcPic(music);
-								playlist.mPlayListView.setSelection(mPlaylist.getCurrentIndex());
+								getPlayListFragment().getListView()
+									.setSelection(mPlaylist.getCurrentIndex());
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -298,23 +308,24 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		}
 		return ret;
 	}
-	private void initLrcPic(final MusicInfo music){
-			playing.setLrc(null);
-			playing.setImage(null);
-			String lrcPath = LrcPicManager.getLrc(music);
-			if(!TextUtils.isEmpty(lrcPath)){
-				playing.setLrc(lrcPath);
-			}else{
-				Logger.e(TAG, "setLrc addObserver");
-				music.addObserver(BaseActivity.this);
-			}
-			String picPath = LrcPicManager.getPic(music);
-			if(!TextUtils.isEmpty(picPath)){
-				playing.setImage(picPath);
-			}else{
-				Logger.e(TAG, "setImage addObserver");
-				music.addObserver(BaseActivity.this);
-			}
+
+	private void initLrcPic(final MusicInfo music) {
+		getPlayingFragment().setLrc(null);
+		getPlayingFragment().setImage(null);
+		String lrcPath = LrcPicManager.getLrc(music);
+		if (!TextUtils.isEmpty(lrcPath)) {
+			getPlayingFragment().setLrc(lrcPath);
+		} else {
+			Logger.e(TAG, "setLrc addObserver");
+			music.addObserver(BaseActivity.this);
+		}
+		String picPath = LrcPicManager.getPic(music);
+		if (!TextUtils.isEmpty(picPath)) {
+			getPlayingFragment().setImage(picPath);
+		} else {
+			Logger.e(TAG, "setImage addObserver");
+			music.addObserver(BaseActivity.this);
+		}
 	}
 
 	@Override
@@ -331,7 +342,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							playing.setLrc(lrcPath);
+							getPlayingFragment().setLrc(lrcPath);
 						}
 					});
 				}
@@ -342,36 +353,41 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							playing.setImage(picPath);
+							getPlayingFragment().setImage(picPath);
 						}
 					});
 				}
 				break;
 		}
 	}
-	
+
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		switch (keyCode) {
-	    	case KeyEvent.KEYCODE_BACK:
-	    		AlertDialog.Builder adb = new AlertDialog.Builder(this);
-	    		adb.setTitle("警告");
-	    		adb.setMessage("确定要退出播放器？");
-	    		adb.setPositiveButton("退出", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						finish();
-					}
-				});
-	    		adb.setNegativeButton("后台播放", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						moveTaskToBack(true);
-					}
-				});
-	    		adb.show();
-	    		return true;
+	public void onBackPressed() {
+		if(getCurrentFragment().pressBack()){
+			return;
+		}else{
+			AlertDialog.Builder adb = new AlertDialog.Builder(this);
+			adb.setTitle("警告");
+			adb.setMessage("确定要退出播放器？");
+			adb.setPositiveButton("退出", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					finish();
+				}
+			});
+			adb.setNegativeButton("后台播放", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					moveTaskToBack(true);
+				}
+			});
+			adb.show();
 		}
-		return super.onKeyDown(keyCode, event);
+		
+//		super.onBackPressed();
+	}
+
+	public interface BackKeyListner{
+		public boolean pressBack();
 	}
 }

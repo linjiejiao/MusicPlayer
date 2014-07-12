@@ -26,7 +26,7 @@ public class PlayListPersister {
 		Logger.d(TAG, "load listName=" + listName);
 		List<MusicInfo> list = new ArrayList<MusicInfo>();
 		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
-				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
+				+ " where " + MusicPlayerDatabase.LIST_NAME + " = '" + listName + "'";
 		Cursor cursor = null;
 		try {
 			long listId = -1;
@@ -47,7 +47,6 @@ public class PlayListPersister {
 				cursor.close();
 			}
 		}
-		Logger.d(TAG, "load list.size=" + list.size());
 		return list;
 	}
 
@@ -91,7 +90,7 @@ public class PlayListPersister {
 		Logger.d(TAG, "persist list=" + list + "; listName=" + listName
 				+ "; cover=" + cover);
 		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
-				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
+				+ " where " + MusicPlayerDatabase.LIST_NAME + " = '" + listName + "'";
 		Cursor cursor = null;
 		try {
 
@@ -211,9 +210,8 @@ public class PlayListPersister {
 	public Long persist(MusicInfo music, String listName) {
 		Logger.d(TAG, "persist music=" + music + "; listName=" + listName);
 		String sql = "select * from " + MusicPlayerDatabase.TABLE_LIST
-				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
+				+ " where " + MusicPlayerDatabase.LIST_NAME + " = '" + listName + "'";
 		long musicId = -1;
-		int listSize = -1;
 		Cursor cursor = null;
 		try {
 			long listId = -1;
@@ -221,8 +219,6 @@ public class PlayListPersister {
 			if (cursor.moveToFirst()) {
 				listId = cursor.getLong(
 						cursor.getColumnIndex("_id"));
-				listSize = cursor.getInt(
-						cursor.getColumnIndex(MusicPlayerDatabase.LIST_SIZE));
 			}
 			cursor.close();
 			cursor = null;
@@ -238,11 +234,7 @@ public class PlayListPersister {
 				values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
 				musicId = db.insert(MusicPlayerDatabase.TABLE_MUSICS,
 						MusicPlayerDatabase.NAME, values);
-				if(listSize != -1){
-					values = new ContentValues();
-					values.put(MusicPlayerDatabase.LIST_SIZE, listSize+1);
-					db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id="+listId, null);
-				}
+				updateListSize(listId);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -255,22 +247,20 @@ public class PlayListPersister {
 		return musicId;
 	}
 
-	public int removeMusic(long musicId, long listId) {
-		Logger.d(TAG, "removeMusic MusicId=" + musicId);
+	public long removeMusic(long musicId, long listId) {
+		Logger.i(TAG, "removeMusic MusicId=" + musicId);
 		if (musicId == -1 || listId == -1) {
 			return -1;
 		}
-		int listSize = db.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = " + musicId, null);
-		ContentValues values = new ContentValues();
-		values.put(MusicPlayerDatabase.LIST_SIZE, listSize-1);
-		db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id="+listId, null);
-		return listSize;
+		db.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = " + musicId, null);
+		updateListSize(listId);
+		return listId;
 	}
 
 	public int deletePlayList(String listName) {
 		Logger.d(TAG, "deletePlayList listName=" + listName);
 		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
-				+ " where " + MusicPlayerDatabase.LIST_NAME + " = " + listName;
+				+ " where " + MusicPlayerDatabase.LIST_NAME + " = '" + listName + "'";
 		int ret = -1;
 		Cursor cursor = null;
 		try {
@@ -323,7 +313,7 @@ public class PlayListPersister {
 				cursor.close();
 			}
 		}
-		Logger.d(TAG, "getAllSavedPlayList list=" + list);
+		Logger.i(TAG, "getAllSavedPlayList list=" + list);
 		return list;
 	}
 	
@@ -341,5 +331,22 @@ public class PlayListPersister {
 			musicId = db.update(MusicPlayerDatabase.TABLE_MUSICS, values, "_id="+musicId,null);
 		}
 		return musicId;
+	}
+	
+	private void updateListSize(long listId){
+		Cursor c = null;
+		try{
+			String sql = "select * from " + MusicPlayerDatabase.TABLE_MUSICS
+					+ " where " + MusicPlayerDatabase.LIST_ID  + " = "+ listId;
+			c = db.rawQuery(sql, null);
+			int listSize = c.getCount();
+			ContentValues values = new ContentValues();
+			values.put(MusicPlayerDatabase.LIST_SIZE, listSize);
+			db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id="+listId, null);
+		}finally{
+			if(c != null){
+				c.close();
+			}
+		}
 	}
 }

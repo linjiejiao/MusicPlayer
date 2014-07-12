@@ -129,7 +129,7 @@ public class PlayList implements Observer {
 	}
 
 	public void remove(int index) {
-		Logger.e(TAG , "remove index="+index);
+		Logger.e(TAG , "remove from " + mPlayListName + " index="+index);
 		if(mPlayListName != null){
 			long deleteId = get(index).getId();
 			long listId = get(index).getListId();
