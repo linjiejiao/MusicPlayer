@@ -54,7 +54,7 @@ public class SavedListAdapter extends BaseAdapter {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View view = null;
-		if (convertView != null && position != mListItems.size()) {
+		if (convertView != null && position < mListItems.size() && mAddView != convertView) {
 			view = convertView;
 		} else {
 			view = newView(parent, position);

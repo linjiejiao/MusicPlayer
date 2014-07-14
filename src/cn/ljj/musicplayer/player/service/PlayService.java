@@ -71,16 +71,6 @@ public class PlayService extends Service implements OnCompletionListener {
 					event.setEventCode(PlayEvent.EVENT_STOP);
 					mPlayer.handelEvent(event);
 					break;
-//				case CMD_NEXT_EVENT:
-//					event.setEventCode(PlayEvent.EVENT_NEXT);
-//					event.setMusic(music);
-//					mPlayer.handelEvent(event);
-//					break;
-//				case CMD_PREV_EVENT:
-//					event.setEventCode(PlayEvent.EVENT_PREV);
-//					event.setMusic(music);
-//					mPlayer.handelEvent(event);
-//					break;
 				case CMD_SEEK_EVENT:
 					event.setEventCode(PlayEvent.EVENT_SEEK);
 					event.setIntValue(intValue);

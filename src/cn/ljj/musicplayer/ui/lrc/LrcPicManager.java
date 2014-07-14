@@ -37,12 +37,14 @@ public class LrcPicManager {
 			mSearcher.setCallBack(new SeachCallback() {
 				@Override
 				public void onSearchResult(List<MusicInfo> resualt) {
-					for(MusicInfo musicInfo:resualt){
-						String lrc = musicInfo.getLrclink();
-						if(!TextUtils.isEmpty(lrc)){
-							music.setLrclink(lrc);
-							downloadLrc(music, lrc);
-							break;
+					if(resualt != null){
+						for(MusicInfo musicInfo:resualt){
+							String lrc = musicInfo.getLrclink();
+							if(!TextUtils.isEmpty(lrc)){
+								music.setLrclink(lrc);
+								downloadLrc(music, lrc);
+								break;
+							}
 						}
 					}
 				}
@@ -82,7 +84,7 @@ public class LrcPicManager {
 				return path;
 			}
 		}else{
-			String saveName = music.getName() + ".Lrc";
+			String saveName = music.getName() + ".pic";
 			path =  StaticUtils.getLrcPath() + saveName;
 			File file = new File(path);
 			if(file.exists()){
@@ -96,7 +98,10 @@ public class LrcPicManager {
 			mSearcher.setCallBack(new SeachCallback() {
 				@Override
 				public void onSearchResult(List<MusicInfo> resualt) {
-//					Logger.e(TAG , "getPic onSearchResult resualt="+resualt);
+					if(resualt == null){
+						return;
+					}
+					Logger.e(TAG , "getPic onSearchResult resualt="+resualt);
 					for(MusicInfo musicInfo:resualt){
 						String pic = musicInfo.getSongPicRadio();
 						if(!TextUtils.isEmpty(pic)){

@@ -39,32 +39,38 @@ public class Player {
 	}
 
 	protected void setState(AbstractState state) {
-		Logger.d(TAG, "setState state="+state);
+		Logger.v(TAG, "setState state="+state);
 		mState = state;
 	}
 
-	protected boolean play(MusicInfo music, boolean reset) {
+	protected boolean play(final MusicInfo music, final boolean reset) {
 		if(music == null){
 			Logger.e(TAG, "play music=" + music);
 			return false;
 		}
-		Logger.d(TAG, "play music=" + music);
-		try {
-			if(reset){
-				reset() ;
-				mMediaPlayer.setDataSource(music.getMusicPath());
-				mMediaPlayer.prepare();
+		Logger.i(TAG, "play music=" + music);
+		new Thread(){
+			@Override
+			public void run() {
+				try {
+					if(reset){
+						reset() ;
+						mMediaPlayer.setDataSource(music.getMusicPath());
+						mMediaPlayer.prepare();
+					}
+					mMediaPlayer.start();
+				}catch (Exception e) {
+					setState(getStateStop());
+					e.printStackTrace();
+				}
+				super.run();
 			}
-			mMediaPlayer.start();
-		}catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+		}.start();
 		return true;
 	}
 
 	protected boolean stop() {
-		Logger.d(TAG, "stop");
+		Logger.v(TAG, "stop");
 		try {
 			mMediaPlayer.pause();
 		} catch (Exception e) {
@@ -74,20 +80,25 @@ public class Player {
 		return true;
 	}
 
-	protected boolean seek(int pos) {
-		Logger.d(TAG, "seek pos=" + pos);
-		try {
-			int time = (mMediaPlayer.getDuration() * pos)/100;
-			mMediaPlayer.seekTo(time);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+	protected boolean seek(final int pos) {
+		Logger.v(TAG, "seek pos=" + pos);
+			new Thread(){
+				@Override
+				public void run() {
+					try {
+						int time = (mMediaPlayer.getDuration() * pos)/100;
+						mMediaPlayer.seekTo(time);
+					} catch (Exception e) {
+						setState(getStateStop());
+						e.printStackTrace();
+					}
+				}
+			}.start();
 		return true;
 	}
 
 	protected boolean reset() {
-		Logger.d(TAG, "reset");
+		Logger.v(TAG, "reset");
 		mMediaPlayer.reset();
 		return true;
 	}

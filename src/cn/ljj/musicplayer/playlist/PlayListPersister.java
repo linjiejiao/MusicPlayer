@@ -235,6 +235,8 @@ public class PlayListPersister {
 				musicId = db.insert(MusicPlayerDatabase.TABLE_MUSICS,
 						MusicPlayerDatabase.NAME, values);
 				updateListSize(listId);
+				music.setListId(listId);
+				music.setId(musicId);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

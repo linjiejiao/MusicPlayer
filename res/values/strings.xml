@@ -22,5 +22,7 @@
     <string name="str_list_name">名字:</string>
     <string name="str_playing">正在播放</string>
     <string name="str_add_music">添加歌曲</string>
+    <string name="str_empty_list">列表为空哦</string>
+    <string name="str_loading">正在加载……</string>
 
 </resources>

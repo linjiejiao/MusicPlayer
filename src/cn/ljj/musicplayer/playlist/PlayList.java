@@ -120,7 +120,7 @@ public class PlayList implements Observer {
 	}
 
 	public void add(MusicInfo music) {
-		Logger.e(TAG , "add music="+music);
+//		Logger.e(TAG , "add music="+music);
 		mMusicList.add(music);
 		music.addObserver(this);
 		if(mPlayListName != null){

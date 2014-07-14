@@ -25,7 +25,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
@@ -35,6 +34,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class PlayListFragment extends BaseFragment implements Defines,
 		OnItemClickListener, OnMenuItemClickListener, SeachCallback {
@@ -42,18 +42,24 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	static final int MENU_DELETE = 0;
 	static final int MENU_DOWNLOAD = 1;
 	static final int MENU_ADD_MUSIC = 2;
+	static final int MASK_EMPTY_LIST = 100;
+	static final int MASK_LOADING = 101;
 	static String TAG = "PlayListFragment";
 	private View mRootView = null;
 	private ListView mListView = null;
 	private LinearLayout mSearchView = null;
+	private LinearLayout mMaskLoading = null;
+	private LinearLayout mMaskEmptyList = null;
 	private Button mBtnSearch = null;
 	private EditText mEditSearch = null;
 	private PlayList mPlaylist = null;
-	private List<SavedList> mAllList = new ArrayList<SavedList>();;
+	private List<SavedList> mAllList = new ArrayList<SavedList>();
 	private List<MusicInfo> mMusicList = new ArrayList<MusicInfo>();
+	private List<MusicInfo> mSearchResualtList = new ArrayList<MusicInfo>();
 	private BaseAdapter mListAdapter = null;
 	private SavedListAdapter mSavedListAdapter = null;
 	private PlayListAdapter mPlayListAdapter = null;
+	private SearchResualtAdapter mSearchResualtAdapter = null;
 	private INotify mBaseActivityCallBack = null;
 	private BaiduMusicSearch mSearcher = null;
 
@@ -73,7 +79,6 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		try {
 			initViews();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return mRootView;
@@ -92,23 +97,7 @@ public class PlayListFragment extends BaseFragment implements Defines,
 			mAllList.clear();
 			mAllList.addAll(mPlaylist.getAllSavedPlayList());
 			mSavedListAdapter = new SavedListAdapter(getActivity(), mAllList);
-			mSavedListAdapter.setAddButtonListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View arg0) {
-					DialogAddList dal = new DialogAddList(getActivity(),
-					new ListChangeListner() {
-						@Override
-						public void onListChange() {
-//							mAllList.clear();
-//							mAllList.addAll(mPlaylist.getAllSavedPlayList());
-//							mSavedListAdapter.notifyDataSetChanged();
-							getListView().setAdapter(getSavedListAdapter(true));
-						}
-					});
-					dal.show();
-				}
-			});
+			mSavedListAdapter.setAddButtonListener(this);
 		}
 		return mSavedListAdapter;
 	}
@@ -122,9 +111,20 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		return mPlayListAdapter;
 	}
 
+	private SearchResualtAdapter getSearchResualtAdapter(boolean update) {
+		if (update || mSearchResualtAdapter == null) {
+			mSearchResualtAdapter = new SearchResualtAdapter(getActivity(), mSearchResualtList);
+		}
+		return mSearchResualtAdapter;
+	}
+
 	private void initViews() {
 		mListView = (ListView) mRootView.findViewById(R.id.playlist_view);
 		mSearchView = (LinearLayout) mRootView.findViewById(R.id.search_view);
+		mMaskLoading = (LinearLayout) mRootView.findViewById(R.id.mask_loading);
+		mMaskEmptyList = (LinearLayout) mRootView.findViewById(R.id.mask_empty_list);
+		Button btnAdd = (Button) mRootView.findViewById(R.id.btn_add_music);
+		btnAdd.setOnClickListener(this);
 		mBtnSearch = (Button) mRootView.findViewById(R.id.btn_search);
 		mEditSearch = (EditText) mRootView.findViewById(R.id.edit_search_keys);
 		mBtnSearch.setOnClickListener(this);
@@ -132,6 +132,25 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		mListView.setAdapter(mListAdapter);
 		mListView.setOnItemClickListener(this);
 		mListView.setOnCreateContextMenuListener(this);
+	}
+
+	private void showMask(int m, boolean show){
+		switch(m){
+		case MASK_EMPTY_LIST:
+			if(show){
+				mMaskEmptyList.setVisibility(View.VISIBLE);
+			}else{
+				mMaskEmptyList.setVisibility(View.GONE);
+			}
+			break;
+		case MASK_LOADING:
+			if(show){
+				mMaskLoading.setVisibility(View.VISIBLE);
+			}else{
+				mMaskLoading.setVisibility(View.GONE);
+			}
+			break;
+		}
 	}
 
 	@Override
@@ -142,14 +161,20 @@ public class PlayListFragment extends BaseFragment implements Defines,
 			SavedList list = mAllList.get(index);
 			mPlaylist.load(list.getListName());
 			mListAdapter = getPlayListAdapter(true);
-			mListView.setAdapter(mListAdapter);
+			getListView().setAdapter(mListAdapter);
+			showMask(MASK_EMPTY_LIST, mPlaylist.isEmpty());
+		} else if (adapterView.getAdapter() instanceof SearchResualtAdapter) {
+			MusicInfo music = mSearchResualtList.get(index);
+			mPlaylist.setProgress(-1);
+			if (sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)) {
+			}
 		} else if (adapterView.getAdapter() instanceof PlayListAdapter) {
 			MusicInfo music = mPlaylist.get(index);
 			mPlaylist.setProgress(-1);
+			mPlaylist.setCurrentIndex(index);
 			if (sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)) {
-				mPlaylist.setCurrentIndex(index);
 			}
-		} else {
+		}else {
 			Logger.e(TAG, "Error Adapter Type");
 		}
 	}
@@ -163,14 +188,15 @@ public class PlayListFragment extends BaseFragment implements Defines,
 			if (mListAdapter instanceof SavedListAdapter) {
 				menu.add(0, MENU_ADD_MUSIC, 0, R.string.str_add_music)
 				.setOnMenuItemClickListener(this);
+				menu.add(0, MENU_DELETE, 1, R.string.str_remove)
+				.setOnMenuItemClickListener(this);
+			}else if (mListAdapter instanceof SearchResualtAdapter) {
+				menu.add(0, MENU_DOWNLOAD, 0, R.string.str_download)
+						.setOnMenuItemClickListener(this);
 			}else{
-				if (mPlaylist.get(0).getLocation() == MusicInfo.LOCATION_ONLINE) {
-					menu.add(0, MENU_DOWNLOAD, 0, R.string.str_download)
-							.setOnMenuItemClickListener(this);
-				}
+				menu.add(0, MENU_DELETE, 1, R.string.str_remove)
+				.setOnMenuItemClickListener(this);
 			}
-			menu.add(0, MENU_DELETE, 1, R.string.str_remove)
-					.setOnMenuItemClickListener(this);
 		}
 	}
 
@@ -185,14 +211,14 @@ public class PlayListFragment extends BaseFragment implements Defines,
 			removeFromList(id);
 			break;
 		case MENU_DOWNLOAD:
-			final MusicInfo music = mPlaylist.get(id);
+			final MusicInfo music = mSearchResualtList.get(id);
 			String saveName = music.getName() + "." + music.getFormat();
 			DownloadFactory.DownloadMusic(music.getMusicPath(), saveName,
 					new DownloadCallback() {
 						@Override
 						public void onProgressChange(int length, int finished) {
-							Logger.e(TAG, "onProgressChange " + finished + "/"
-									+ length);
+							Logger.e(TAG, "onProgressChange " + finished/1024 + "K/"
+									+ length/1024 + "K");
 						}
 
 						@Override
@@ -209,13 +235,17 @@ public class PlayListFragment extends BaseFragment implements Defines,
 			break;
 		case MENU_ADD_MUSIC:
 			mPlaylist.load(mAllList.get(id).getListName());
-			Intent innerIntent = new Intent(Intent.ACTION_GET_CONTENT);
-			innerIntent.setType("audio/*");
-			Intent wrapperIntent = Intent.createChooser(innerIntent, null);
-			startActivityForResult(wrapperIntent, REQ_CODE_GET_MUSIC);
+			selectMusic();
 			break;
 		}
 		return false;
+	}
+
+	private void selectMusic(){
+		Intent innerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+		innerIntent.setType("audio/*");
+		Intent wrapperIntent = Intent.createChooser(innerIntent, null);
+		startActivityForResult(wrapperIntent, REQ_CODE_GET_MUSIC);
 	}
 
 	@Override
@@ -223,12 +253,12 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		switch(requestCode){
 		case REQ_CODE_GET_MUSIC:
 			if(data != null && data.getData() != null){
+				showMask(MASK_EMPTY_LIST, false);
 				Uri uri = data.getData();
-				Logger.e(TAG, "onActivityResult uri="+uri);
 				MusicInfo music = getMusicInfo(uri);
 				mPlaylist.add(music);
 				mListAdapter = getPlayListAdapter(true);
-				mListView.setAdapter(mListAdapter);
+				getListView().setAdapter(mListAdapter);
 			}
 			break;
 		}
@@ -249,6 +279,10 @@ public class PlayListFragment extends BaseFragment implements Defines,
 
 	private void search(String keys) {
 		mSearcher.search(keys, 10, 1);
+		mSearchResualtList.clear();
+		mListAdapter = getSearchResualtAdapter(true);
+		getListView().setAdapter(mListAdapter);
+		showMask(MASK_LOADING, true);
 	}
 
 	@Override
@@ -256,9 +290,15 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				// BaseAdapter listAdapter = prepareListDate(resualt);
-				// mListView.setAdapter(listAdapter);
-				// mPlaylist.setMusicList(resualt, null);
+				showMask(MASK_LOADING, false);
+				if(resualt == null){
+					Toast.makeText(getActivity(), "Network Error", Toast.LENGTH_LONG).show();
+					return;
+				}
+				mSearchResualtList.addAll(resualt);
+				mListAdapter = getSearchResualtAdapter(true);
+				getListView().setAdapter(mListAdapter);
+				mPlaylist.setMusicList(mSearchResualtList, null);
 			}
 		});
 	}
@@ -269,6 +309,20 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		switch (v.getId()) {
 		case R.id.btn_search:
 			search(mEditSearch.getText().toString());
+			break;
+		case R.id.btn_add_music:
+			selectMusic();
+			break;
+		case R.id.btn_add_list:
+			DialogAddList dal = new DialogAddList(getActivity(),
+					new ListChangeListner() {
+						@Override
+						public void onListChange() {
+							mListAdapter = getSavedListAdapter(true);
+							getListView().setAdapter(mListAdapter);
+						}
+					});
+			dal.show();
 			break;
 		default:
 
@@ -299,12 +353,16 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	public boolean pressBack() {
 		if (mListAdapter instanceof SavedListAdapter) {
 			return false;
-		} else if (mListAdapter instanceof PlayListAdapter) {
+		} else {
+			if (mListAdapter instanceof SearchResualtAdapter){
+				showMask(MASK_LOADING, false);
+				mSearcher.cancel();
+			}
 			mListAdapter = getSavedListAdapter(true);
-			mListView.setAdapter(mListAdapter);
+			getListView().setAdapter(mListAdapter);
+			showMask(MASK_EMPTY_LIST, mAllList.isEmpty());
 			return true;
 		}
-		return false;
 	}
 
 	interface ListChangeListner{
