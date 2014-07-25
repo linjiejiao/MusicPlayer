@@ -156,6 +156,9 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 				}
 				break;
 			case R.id.action_settings:
+				Intent intent = new Intent();
+				intent.setClass(this, SettingActivity.class);
+				startActivity(intent);
 				break;
 		}
 		return super.onOptionsItemSelected(item);
@@ -237,10 +240,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			switch(cmd){
 				case CMD_PLAY_EVENT:
 					boolean ret = sendCmd(cmd, mPlaylist.getProgress(), longValue, str, music);
-					if(ret){
-						mBtnPlay.setBackgroundResource(R.drawable.button_pause);
-						mBtnPlay.setTag(BaseActivity.this);
-					}else{
+					if(!ret){
 						return RET_ERROR;
 					}
 					break;
@@ -292,6 +292,9 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 						@Override
 						public void run() {
 							try {
+								mBtnPlay.setBackgroundResource(R.drawable.button_pause);
+								mBtnPlay.setTag(BaseActivity.this);
+								setTitle(mPlaylist.get().getName());
 								initLrcPic(music);
 								getPlayListFragment().getListView()
 									.setSelection(mPlaylist.getCurrentIndex());
@@ -309,7 +312,12 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		return ret;
 	}
 
+	MusicInfo lastMusic = null;
 	private void initLrcPic(final MusicInfo music) {
+		if(music.equals(lastMusic)){
+			return ;
+		}
+		lastMusic = music;
 		getPlayingFragment().setLrc(null);
 		getPlayingFragment().setImage(null);
 		String lrcPath = LrcPicManager.getLrc(music);
@@ -367,15 +375,15 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			return;
 		}else{
 			AlertDialog.Builder adb = new AlertDialog.Builder(this);
-			adb.setTitle("警告");
-			adb.setMessage("确定要退出播放器？");
-			adb.setPositiveButton("退出", new DialogInterface.OnClickListener() {
+			adb.setTitle(R.string.str_warning);
+			adb.setMessage(R.string.str_sure_to_exit);
+			adb.setPositiveButton(R.string.str_exit, new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					finish();
 				}
 			});
-			adb.setNegativeButton("后台播放", new DialogInterface.OnClickListener() {
+			adb.setNegativeButton(R.string.str_goto_background, new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					moveTaskToBack(true);

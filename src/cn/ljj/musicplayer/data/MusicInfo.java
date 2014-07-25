@@ -451,4 +451,52 @@ public class MusicInfo extends Observable implements Parcelable{
 		setChanged();
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (_id ^ (_id >>> 32));
+		result = prime * result
+				+ ((mLrcPath == null) ? 0 : mLrcPath.hashCode());
+		result = prime * result
+				+ ((mMusicPath == null) ? 0 : mMusicPath.hashCode());
+		result = prime * result + ((mName == null) ? 0 : mName.hashCode());
+		result = prime * result
+				+ ((mPicPath == null) ? 0 : mPicPath.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MusicInfo other = (MusicInfo) obj;
+		if (_id != other._id)
+			return false;
+		if (mLrcPath == null) {
+			if (other.mLrcPath != null)
+				return false;
+		} else if (!mLrcPath.equals(other.mLrcPath))
+			return false;
+		if (mMusicPath == null) {
+			if (other.mMusicPath != null)
+				return false;
+		} else if (!mMusicPath.equals(other.mMusicPath))
+			return false;
+		if (mName == null) {
+			if (other.mName != null)
+				return false;
+		} else if (!mName.equals(other.mName))
+			return false;
+		if (mPicPath == null) {
+			if (other.mPicPath != null)
+				return false;
+		} else if (!mPicPath.equals(other.mPicPath))
+			return false;
+		return true;
+	}
 }

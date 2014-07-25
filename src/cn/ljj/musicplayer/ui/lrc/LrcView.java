@@ -14,10 +14,10 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-public class LrcView extends FrameLayout{
-	static final int LRC_COLOR_NORMAL = 0xffffffff;
+public class LrcView extends FrameLayout {
+	static final int LRC_COLOR_NORMAL = 0xafffffff;
 	static final int LRC_COLOR_PALYING = 0xff00ffff;
-	static final int LRC_COLOR_BACKGROUND = 0x8000314f;
+	static final int LRC_COLOR_BACKGROUND = 0x40000000;
 	static final int LRC_SIZE_NORMAL = 15;
 	static final int LRC_SIZE_PALYING = 25;
 	static final int LRC_MARGIN = 5;
@@ -32,9 +32,18 @@ public class LrcView extends FrameLayout{
 	LrcScrollView mLrcScroll = null;
 	ImageView mLrcMask = null;
 	public static String TAG = "LrcView";
+
 	public LrcView(Context context) {
 		super(context);
 		mContext = context;
+	}
+
+	protected int getCurrentPosition() {
+		return mCurrentPosistion;
+	}
+
+	protected void setCurrentPosition(int position) {
+		mCurrentPosistion = position;
 	}
 
 	public LrcView(Context context, AttributeSet attrs) {
@@ -42,109 +51,107 @@ public class LrcView extends FrameLayout{
 		mContext = context;
 	}
 
-	public int getmCurrentPosistion() {
-		return mCurrentPosistion;
-	}
-
-	public void init(){
+	public void init() {
+		// lrc scroll
 		mLrcScroll = new LrcScrollView(mContext);
 		FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		lp.setMargins(LRC_MARGIN, LRC_MARGIN, LRC_MARGIN, LRC_MARGIN);
 		mLrcScroll.setVerticalScrollBarEnabled(false);
 		mLrcScroll.setId(SCROLLVIEW_ID);
 		mLrcScroll.setSmoothScrollingEnabled(true);
-		
-		addView(mLrcScroll,lp);
+		lp.setMargins(0, 0, 0, 0);
+		addView(mLrcScroll, lp);
+
+		// fade in/out mask
 		mLrcMask = new ImageView(mContext);
 		mLrcMask.setBackgroundResource(R.drawable.lrc_mask);
 		mLrcMask.setScaleType(ScaleType.FIT_XY);
 		mLrcMask.setId(LRCMASK_ID);
-		lp = new FrameLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+		lp = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+				LayoutParams.MATCH_PARENT);
 		lp.setMargins(0, 0, 0, 0);
-		addView(mLrcMask,lp);
+		addView(mLrcMask, lp);
 	}
 
-	public synchronized void initScrollViews(List<LyricLine> lrcs){
+	public synchronized void setLrcs(List<LyricLine> lrcs) {
+		mLinearLayout = getLinearLayout(lrcs);
 		mLrcScroll.removeAllViews();
-		addLinearLayouttoSroll();
+		mLrcScroll.addView(mLinearLayout);
+		mLrcScroll.smoothScrollTo(0, 0);
+	}
+
+	private LinearLayout getLinearLayout(List<LyricLine> lrcs) {
+		LinearLayout linearLayout = new LinearLayout(mContext);
+		linearLayout.setOrientation(LinearLayout.VERTICAL);
+		linearLayout.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				setVisibility(GONE);
+			}
+		});
+		linearLayout.setBackgroundColor(LRC_COLOR_BACKGROUND);
+		linearLayout.setGravity(Gravity.CENTER);
 		mLrcTexts.clear();
-		mCurrentPosistion = 0;
+		setCurrentPosition(0);
 		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
+				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		lp.topMargin = LRC_MARGIN;
 		lp.bottomMargin = LRC_MARGIN;
-
 		mTopText = new TextView(mContext);
-		mTopText.setTextSize(6*LRC_SIZE_PALYING);
-		mLinearLayout.addView(mTopText,lp);
-		if(lrcs.isEmpty()){
+		mTopText.setTextSize(6 * LRC_SIZE_PALYING);
+		linearLayout.addView(mTopText, lp);
+		if (lrcs.isEmpty()) {
 			TextView text = new TextView(mContext);
 			text.setText(R.string.str_lrc_not_found);
 			text.setTextSize(LRC_SIZE_PALYING);
 			text.setTextColor(LRC_COLOR_PALYING);
 			text.setGravity(Gravity.CENTER_HORIZONTAL);
-			mLinearLayout.addView(text,lp);
-		}else{
-			for(LyricLine line:lrcs){
+			linearLayout.addView(text, lp);
+		} else {
+			for (LyricLine line : lrcs) {
 				TextView text = new TextView(mContext);
 				text.setText(line.getLyric());
 				text.setTag(line);
 				text.setTextSize(LRC_SIZE_NORMAL);
 				text.setTextColor(LRC_COLOR_NORMAL);
 				text.setGravity(Gravity.CENTER_HORIZONTAL);
-				mLinearLayout.addView(text,lp);
+				linearLayout.addView(text, lp);
 				mLrcTexts.add(text);
 			}
 		}
 		mBottomText = new TextView(mContext);
-		mBottomText.setTextSize(6*LRC_SIZE_PALYING);
-		mLinearLayout.addView(mBottomText,lp);
+		mBottomText.setTextSize(6 * LRC_SIZE_PALYING);
+		linearLayout.addView(mBottomText, lp);
+		return linearLayout;
 	}
 
-	private LinearLayout addLinearLayouttoSroll(){
-		mLinearLayout = new LinearLayout(mContext);
-		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
-		mLinearLayout.setOrientation(LinearLayout.VERTICAL);
-		mLinearLayout.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				setVisibility(GONE);
-			}
-		});
-		mLinearLayout.setBackgroundColor(LRC_COLOR_BACKGROUND);
-		mLinearLayout.setGravity(Gravity.CENTER);
-		mLrcScroll.addView(mLinearLayout,lp);
-		return mLinearLayout;
-	}
-
-	public void highlight(int posistion){
-		if(mCurrentPosistion == posistion){
-			return ;
+	public void highlight(int posistion) {
+		if (getCurrentPosition() == posistion) {
+			return;
 		}
-		if(posistion < mLrcTexts.size()){
-			TextView text = mLrcTexts.get(mCurrentPosistion);
+		if (posistion < mLrcTexts.size()) {
+			TextView text = mLrcTexts.get(getCurrentPosition());
 			text.setTextColor(LRC_COLOR_NORMAL);
 			text.setTextSize(LRC_SIZE_NORMAL);
 			text = mLrcTexts.get(posistion);
 			text.setTextColor(LRC_COLOR_PALYING);
 			text.setTextSize(LRC_SIZE_PALYING);
-			mCurrentPosistion = posistion;
+			setCurrentPosition(posistion);
 		}
 		post(mAutoScrollRun);
 	}
 
-	private void scrollToPlaying(){
-		if(mLrcTexts.isEmpty()){
+	private void scrollToPlaying() {
+		if (mLrcTexts.isEmpty()) {
 			return;
 		}
-		int allheight = mTopText.getHeight() + 2*LRC_MARGIN;
-		for(int i=0;i<=mCurrentPosistion;i++){
-			allheight += mLrcTexts.get(i).getHeight() + 2*LRC_MARGIN;
+		int allheight = mTopText.getHeight() + 2 * LRC_MARGIN;
+		for (int i = 0; i <= getCurrentPosition(); i++) {
+			allheight += mLrcTexts.get(i).getHeight() + 2 * LRC_MARGIN;
 		}
-		int delta = (int) (getHeight()/2 + mLrcTexts.get(mCurrentPosistion).getHeight()/2+LRC_MARGIN);
+		int delta = (int) (getHeight() / 2
+				+ mLrcTexts.get(getCurrentPosition()).getHeight() / 2 + LRC_MARGIN);
 		mLrcScroll.smoothScrollTo(0, allheight - delta);
 	}
 
@@ -159,51 +166,51 @@ public class LrcView extends FrameLayout{
 		}
 	};
 
-	public synchronized void updateProgress(int  progress, int duration){
-		if(mLrcTexts.isEmpty()){
-			return ;
+	public synchronized void updateProgress(int progress, int duration) {
+		if (mLrcTexts.isEmpty()) {
+			return;
 		}
-		int i = mCurrentPosistion;
-		while(true){
+		int i = getCurrentPosition();
+		while (true) {
 			TextView text = mLrcTexts.get(i);
-			LyricLine line = (LyricLine)text.getTag();
-			if(line == null){
+			LyricLine line = (LyricLine) text.getTag();
+			if (line == null) {
 				return;
 			}
-			if(line.getTime() > progress){
-				if(i == 0){	//reach first
+			if (line.getTime() > progress) {
+				if (i == 0) { // reach first
 					highlight(0);
 					break;
-				}else{
-					text = mLrcTexts.get(i-1);
-					line = (LyricLine)text.getTag();
-					if(line.getTime() > progress){
-						i--;	//roll back
-					}else{
-						highlight(i-1);
+				} else {
+					text = mLrcTexts.get(i - 1);
+					line = (LyricLine) text.getTag();
+					if (line.getTime() > progress) {
+						i--; // roll back
+					} else {
+						highlight(i - 1);
 						break;
 					}
 				}
-			}else{
-				if(i == mLrcTexts.size()-1){	//reach end
-					highlight(mLrcTexts.size()-1);
+			} else {
+				if (i == mLrcTexts.size() - 1) { // reach end
+					highlight(mLrcTexts.size() - 1);
 					break;
-				}else{
-					text = mLrcTexts.get(i+1);
-					line = (LyricLine)text.getTag();
-					if(line.getTime() < progress){
+				} else {
+					text = mLrcTexts.get(i + 1);
+					line = (LyricLine) text.getTag();
+					if (line.getTime() < progress) {
 						i++;
-					}else{
+					} else {
 						highlight(i);
 						break;
 					}
 				}
-				
+
 			}
-		}		
+		}
 	}
 
-	class LrcScrollView extends ScrollView{
+	class LrcScrollView extends ScrollView {
 
 		public LrcScrollView(Context context, AttributeSet attrs) {
 			super(context, attrs);

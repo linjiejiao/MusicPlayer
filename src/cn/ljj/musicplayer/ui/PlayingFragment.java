@@ -47,15 +47,15 @@ public class PlayingFragment extends BaseFragment{
 	public boolean setLrc(String lrcPath) {
 		try {
 			if(lrcPath == null){
-				lrc_view.initScrollViews(new ArrayList <LyricLine>());
-				return true;
+				lrc_view.setLrcs(new ArrayList <LyricLine>());
+				return false;
 			}
 			LrcParser parser = new LrcParser();
 			if(parser.parser(lrcPath) == -1){
 				return false;
 			}
 			List <LyricLine> list = parser.getLrcList();
-			lrc_view.initScrollViews(list);
+			lrc_view.setLrcs(list);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

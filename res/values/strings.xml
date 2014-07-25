@@ -24,5 +24,9 @@
     <string name="str_add_music">添加歌曲</string>
     <string name="str_empty_list">列表为空哦</string>
     <string name="str_loading">正在加载……</string>
+    <string name="str_warning">警告</string>
+    <string name="str_sure_to_exit">确定要退出播放器？</string>
+    <string name="str_exit">退出</string>
+    <string name="str_goto_background">后台播放</string>
 
 </resources>

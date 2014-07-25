@@ -5,6 +5,7 @@
     android:orientation="horizontal" >
 
     <Button
+        android:background="@drawable/bottom_round"
         android:id="@+id/btn_add_list"
         android:text="@string/str_add"
         android:layout_width="match_parent"

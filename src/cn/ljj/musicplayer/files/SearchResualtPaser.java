@@ -10,7 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
 import android.util.Xml;
@@ -178,6 +177,8 @@ public class SearchResualtPaser {
 			info.setFormat(item.getString("format"));
 			info.setRate(item.getInt("rate"));
 			info.setSize(item.getInt("size"));
+		}else{
+			Logger.e(TAG, "getLinks error errorCode=" + errorCode);
 		}
 	}
 

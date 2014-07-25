@@ -112,7 +112,7 @@ public class Player {
 	}
 
 	public boolean isPlaying(){
-		return mMediaPlayer.isPlaying();
+		return mMediaPlayer.isPlaying() && (statePlaying.equals(getState()));
 	}
 
 	public int getDuration(){

@@ -61,11 +61,13 @@ public class LrcPicManager {
 		DownloadFactory.DownloadLrc(link, saveName, new DownloadCallback() {
 			@Override
 			public void onProgressChange(int length, int finished) {
+				Logger.v(TAG , "downloadPic onFinished finished "
+						+ ((finished*100)/length) + "%");
 			}
 			
 			@Override
 			public void onFinished(String filePath) {
-				Logger.i(TAG , "downloadLrc onFinished filePath="+filePath);
+				Logger.v(TAG , "downloadLrc onFinished filePath="+filePath);
 				music.setLrcPath(filePath);
 			}
 			
@@ -79,19 +81,25 @@ public class LrcPicManager {
 	public static String getPic(final MusicInfo music){
 		String path = music.getPicPath();
 		if(!TextUtils.isEmpty(path)){
+			//associated pic
 			File file = new File(path);
 			if(file.exists()){
+				Logger.v(TAG , "associated pic found "+path);
 				return path;
 			}
 		}else{
+			//old exited pic
 			String saveName = music.getName() + ".pic";
-			path =  StaticUtils.getLrcPath() + saveName;
+			path =  StaticUtils.getPicPath() + saveName;
 			File file = new File(path);
 			if(file.exists()){
-				music.setLrcPath(path);
+				music.setPicPath(path);
+				Logger.v(TAG , "old pic found "+path);
 				return path;
 			}
 		}
+		//download a pic
+		Logger.v(TAG , "download a pic");
 		String link = music.getSongPicBig();
 		if(TextUtils.isEmpty(link)){
 			BaiduMusicSearch mSearcher = new BaiduMusicSearch();
@@ -125,11 +133,13 @@ public class LrcPicManager {
 			
 			@Override
 			public void onProgressChange(int length, int finished) {
+				Logger.v(TAG , "downloadPic onFinished finished "
+						+ ((finished*100)/length) + "%");
 			}
 			
 			@Override
 			public void onFinished(String filePath) {
-				Logger.i(TAG , "downloadPic onFinished filePath="+filePath);
+				Logger.v(TAG , "downloadPic onFinished filePath="+filePath);
 				music.setPicPath(filePath);
 			}
 			
