@@ -5,6 +5,7 @@ import java.util.List;
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
+import cn.ljj.musicplayer.database.MusicProvider;
 import cn.ljj.musicplayer.files.BaiduMusicSearch;
 import cn.ljj.musicplayer.files.BaiduMusicSearch.SeachCallback;
 import cn.ljj.musicplayer.files.Defines;
@@ -33,6 +34,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -92,14 +94,22 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		return mSearchView;
 	}
 
-	private SavedListAdapter getSavedListAdapter(boolean update) {
-		if (update || mSavedListAdapter == null) {
-			mAllList.clear();
-			mAllList.addAll(mPlaylist.getAllSavedPlayList());
-			mSavedListAdapter = new SavedListAdapter(getActivity(), mAllList);
-			mSavedListAdapter.setAddButtonListener(this);
-		}
-		return mSavedListAdapter;
+	private BaseAdapter getSavedListAdapter(boolean update) {
+//		if (update || mSavedListAdapter == null) {
+//			mAllList.clear();
+//			mAllList.addAll(mPlaylist.getAllSavedPlayList());
+//			mSavedListAdapter = new SavedListAdapter(getActivity(), mAllList);
+//			mSavedListAdapter.setAddButtonListener(this);
+//		}
+	    if(mSavedListAdapter == null){
+	        Uri uri = Uri.parse(MusicProvider.URI_BASE)
+	                .buildUpon()
+	                .appendPath(MusicProvider.URI_ALL_LIST)
+	                .build();
+	        Cursor c = getActivity().getContentResolver().query(uri, null, null, null, null);
+	        mListAdapter = new SavedListAdapter2(getActivity(), c, true);//getSavedListAdapter(true);
+	    }
+		return mListAdapter;
 	}
 
 	private PlayListAdapter getPlayListAdapter(boolean update) {
@@ -132,6 +142,11 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		mListView.setAdapter(mListAdapter);
 		mListView.setOnItemClickListener(this);
 		mListView.setOnCreateContextMenuListener(this);
+		View footerView = getActivity().getLayoutInflater().inflate(R.layout.layout_buttom_add_item,
+                null, false);
+        Button add = (Button) footerView.findViewById(R.id.btn_add_list);
+        add.setOnClickListener(this);
+		mListView.addFooterView(footerView);
 	}
 
 	private void showMask(int m, boolean show){
@@ -157,7 +172,7 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	public void onItemClick(AdapterView<?> adapterView, View view, int index,
 			long arg3) {
 		Logger.i(TAG, "onItemClick index=" + index);
-		if (adapterView.getAdapter() instanceof SavedListAdapter) {
+		if (adapterView.getAdapter() instanceof SavedListAdapter2) {
 			SavedList list = mAllList.get(index);
 			mPlaylist.load(list.getListName());
 			mListAdapter = getPlayListAdapter(true);
@@ -185,7 +200,7 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		if (menuInfo != null) {
 			// jiajian
 			menu.setHeaderTitle(R.string.str_operate);
-			if (mListAdapter instanceof SavedListAdapter) {
+			if (mListAdapter instanceof SavedListAdapter2) {
 				menu.add(0, MENU_ADD_MUSIC, 0, R.string.str_add_music)
 				.setOnMenuItemClickListener(this);
 				menu.add(0, MENU_DELETE, 1, R.string.str_remove)
@@ -266,7 +281,7 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	}
 
 	private void removeFromList(int id) {
-		if (mListAdapter instanceof SavedListAdapter) {
+		if (mListAdapter instanceof SavedListAdapter2) {
 			mPlaylist.deletePlayList(mAllList.get(id).getListName());
 			mAllList.remove(id);
 			getSavedListAdapter(false).notifyDataSetChanged();
@@ -351,7 +366,7 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	}
 
 	public boolean pressBack() {
-		if (mListAdapter instanceof SavedListAdapter) {
+		if (mListAdapter instanceof SavedListAdapter2) {
 			return false;
 		} else {
 			if (mListAdapter instanceof SearchResualtAdapter){

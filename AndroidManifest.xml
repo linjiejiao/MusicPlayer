@@ -37,6 +37,11 @@
         <activity
             android:name="cn.ljj.musicplayer.ui.SettingActivity"
             android:screenOrientation="portrait" />
+        
+        <provider android:name="cn.ljj.musicplayer.database.MusicProvider"
+            android:exported="false"
+            android:authorities="music-provider">
+        </provider>
     </application>
 
 </manifest>

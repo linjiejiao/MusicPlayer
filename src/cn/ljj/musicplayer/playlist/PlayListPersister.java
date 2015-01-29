@@ -5,11 +5,13 @@ import java.util.List;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
+import cn.ljj.musicplayer.database.MusicProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.provider.MediaStore;
 
 public class PlayListPersister {
@@ -295,7 +297,12 @@ public class PlayListPersister {
 		String sql = "select * from " + MusicPlayerDatabase.TABLE_LIST;
 		Cursor cursor = null;
 		try {
-			cursor = db.rawQuery(sql, null);
+//			cursor = db.rawQuery(sql, null);
+		    Uri uri = Uri.parse(MusicProvider.URI_BASE)
+		            .buildUpon()
+		            .appendPath(MusicProvider.URI_ALL_LIST)
+		            .build();
+		    cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 			int idIndex = cursor.getColumnIndex("_id");
 			int countIndex = cursor
 					.getColumnIndex(MusicPlayerDatabase.LIST_SIZE);

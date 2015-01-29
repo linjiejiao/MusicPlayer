@@ -16,6 +16,7 @@ public class MusicPlayerDatabase extends SQLiteOpenHelper{
 
 	public static final String TABLE_LIST = "list";
 	public static final String TABLE_MUSICS = "musics";
+    public static final String _ID = "_id";
 	public static final String LIST_ID = "list_id";
 	public static final String NAME = "name";
 	public static final String ARTIST = "artist";
