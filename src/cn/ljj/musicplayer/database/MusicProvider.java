@@ -16,12 +16,12 @@ public class MusicProvider extends ContentProvider {
     private static String TAG = "MusicProvider";
     public static final String AUTHORITY = "music-provider";
     public static final String URI_BASE= "content://" + AUTHORITY;
-    public static final String URI_ALL_LIST = "list";
-    public static final String URI_LIST = "list/#";
-    public static final String URI_ALL_MUSIC= "music";
-    public static final String URI_MUSIC= "music/#";
-    public static final String URI_LIST_MUSIC= "music/list/#";
-    public static final String URI_INTERNET = "internet";
+    public static final String URI_ALL_LIST = URI_BASE + "/list";
+    public static final String URI_LIST = URI_BASE + "/list";
+    public static final String URI_ALL_MUSIC= URI_BASE + "/music";
+    public static final String URI_MUSIC= URI_BASE + "/music";
+    public static final String URI_LIST_MUSIC= URI_BASE + "/music/list";
+    public static final String URI_INTERNET = URI_BASE + "/internet";
 
     public static final int ALL_LIST = 0;
     public static final int LIST = 1;
@@ -32,11 +32,12 @@ public class MusicProvider extends ContentProvider {
     
     private static UriMatcher sMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     static{
-        sMatcher.addURI(AUTHORITY, URI_ALL_LIST, ALL_LIST);
-        sMatcher.addURI(AUTHORITY, URI_LIST, LIST);
-        sMatcher.addURI(AUTHORITY, URI_ALL_MUSIC, ALL_MUSIC);
-        sMatcher.addURI(AUTHORITY, URI_MUSIC, MUSIC);
-        sMatcher.addURI(AUTHORITY, URI_INTERNET , INTERNET);
+        sMatcher.addURI(AUTHORITY, "list", ALL_LIST);
+        sMatcher.addURI(AUTHORITY, "list/#", LIST);
+        sMatcher.addURI(AUTHORITY, "music", ALL_MUSIC);
+        sMatcher.addURI(AUTHORITY, "music/#", MUSIC);
+        sMatcher.addURI(AUTHORITY, "music/list/#" , LIST_MUSIC);
+        sMatcher.addURI(AUTHORITY, "internet" , INTERNET);
     }
     
     public int delete(Uri uri, String selection, String[] selectionArgs) {
@@ -156,7 +157,9 @@ public class MusicProvider extends ContentProvider {
                 break;
                 default:
         }
-        cursor.setNotificationUri(mContentResolver, uri);
+        if(cursor != null){
+            cursor.setNotificationUri(mContentResolver, uri);
+        }
         return cursor;
     }
 

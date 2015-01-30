@@ -298,10 +298,7 @@ public class PlayListPersister {
 		Cursor cursor = null;
 		try {
 //			cursor = db.rawQuery(sql, null);
-		    Uri uri = Uri.parse(MusicProvider.URI_BASE)
-		            .buildUpon()
-		            .appendPath(MusicProvider.URI_ALL_LIST)
-		            .build();
+		    Uri uri = Uri.parse(MusicProvider.URI_ALL_LIST);
 		    cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 			int idIndex = cursor.getColumnIndex("_id");
 			int countIndex = cursor

@@ -1,6 +1,9 @@
 package cn.ljj.musicplayer.data;
 
 import java.util.Observable;
+
+import cn.ljj.musicplayer.database.MusicPlayerDatabase;
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -49,6 +52,39 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	public MusicInfo() {
 	}
+
+    public MusicInfo(Cursor cursor) {
+        int idIndex = cursor.getColumnIndex("_id");
+        int nameIndex = cursor.getColumnIndex(MusicPlayerDatabase.NAME);
+        int artistIndex = cursor.getColumnIndex(MusicPlayerDatabase.ARTIST);
+        int albumIndex = cursor.getColumnIndex(MusicPlayerDatabase.ALBUM);
+        int durationIndex = cursor.getColumnIndex(MusicPlayerDatabase.DURATION);
+        int musicPathIndex = cursor
+                .getColumnIndex(MusicPlayerDatabase.MUSIC_PATH);
+        int lrcPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.LRC_PATH);
+        int picPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.PIC_PATH);
+        int listIdIndex = cursor.getColumnIndex(MusicPlayerDatabase.LIST_ID);
+        
+        long _id = cursor.getInt(idIndex);
+        String name = cursor.getString(nameIndex);
+        String artist = cursor.getString(artistIndex);
+        String album = cursor.getString(albumIndex);
+        int duration = cursor.getInt(durationIndex);
+        String musicPath = cursor.getString(musicPathIndex);
+        String lrcPath = cursor.getString(lrcPathIndex);
+        String picPath = cursor.getString(picPathIndex);
+        long listId = cursor.getLong(listIdIndex);
+
+        setId(_id);
+        setAlbum(album);
+        setArtist(artist);
+        setDuration(duration);
+        setLrcPath(lrcPath);
+        setPicPath(picPath);
+        setListId(listId);
+        setMusicPath(musicPath);
+        setName(name);
+    }
 
 	public MusicInfo(String name, String path) {
 		mName = name;

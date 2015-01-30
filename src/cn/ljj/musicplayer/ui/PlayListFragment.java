@@ -2,9 +2,11 @@ package cn.ljj.musicplayer.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
+import cn.ljj.musicplayer.database.MusicPlayerDatabase;
 import cn.ljj.musicplayer.database.MusicProvider;
 import cn.ljj.musicplayer.files.BaiduMusicSearch;
 import cn.ljj.musicplayer.files.BaiduMusicSearch.SeachCallback;
@@ -15,6 +17,13 @@ import cn.ljj.musicplayer.player.service.INotify;
 import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.playlist.PlayList;
 import cn.ljj.musicplayer.playlist.SavedList;
+import cn.ljj.musicplayer.ui.listadapter.AbstractListAdapter;
+import cn.ljj.musicplayer.ui.listadapter.PlayListAdapter;
+import cn.ljj.musicplayer.ui.listadapter.SavedListAdapter;
+import cn.ljj.musicplayer.ui.listadapter.SearchResualtAdapter;
+import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -30,11 +39,9 @@ import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -58,12 +65,19 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	private List<SavedList> mAllList = new ArrayList<SavedList>();
 	private List<MusicInfo> mMusicList = new ArrayList<MusicInfo>();
 	private List<MusicInfo> mSearchResualtList = new ArrayList<MusicInfo>();
-	private BaseAdapter mListAdapter = null;
+	private AbstractListAdapter mListAdapter = null;
 	private SavedListAdapter mSavedListAdapter = null;
 	private PlayListAdapter mPlayListAdapter = null;
 	private SearchResualtAdapter mSearchResualtAdapter = null;
 	private INotify mBaseActivityCallBack = null;
 	private BaiduMusicSearch mSearcher = null;
+    private Context mContext = null;
+    private BackgroundHandler mQueryHandler = null;
+
+	public PlayListFragment(Context context){
+	    mContext = context;
+	    mQueryHandler = new BackgroundHandler(context.getContentResolver());
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -94,36 +108,9 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		return mSearchView;
 	}
 
-	private BaseAdapter getSavedListAdapter(boolean update) {
-//		if (update || mSavedListAdapter == null) {
-//			mAllList.clear();
-//			mAllList.addAll(mPlaylist.getAllSavedPlayList());
-//			mSavedListAdapter = new SavedListAdapter(getActivity(), mAllList);
-//			mSavedListAdapter.setAddButtonListener(this);
-//		}
-	    if(mSavedListAdapter == null){
-	        Uri uri = Uri.parse(MusicProvider.URI_BASE)
-	                .buildUpon()
-	                .appendPath(MusicProvider.URI_ALL_LIST)
-	                .build();
-	        Cursor c = getActivity().getContentResolver().query(uri, null, null, null, null);
-	        mListAdapter = new SavedListAdapter2(getActivity(), c, true);//getSavedListAdapter(true);
-	    }
-		return mListAdapter;
-	}
-
-	private PlayListAdapter getPlayListAdapter(boolean update) {
-		if (update || mPlayListAdapter == null) {
-			mMusicList.clear();
-			mMusicList.addAll(mPlaylist.getMusicList());
-			mPlayListAdapter = new PlayListAdapter(getActivity(), mMusicList);
-		}
-		return mPlayListAdapter;
-	}
-
-	private SearchResualtAdapter getSearchResualtAdapter(boolean update) {
+	private AbstractListAdapter getSearchResualtAdapter(boolean update) {
 		if (update || mSearchResualtAdapter == null) {
-			mSearchResualtAdapter = new SearchResualtAdapter(getActivity(), mSearchResualtList);
+//			mSearchResualtAdapter = new SearchResualtAdapter(getActivity(), mSearchResualtList);
 		}
 		return mSearchResualtAdapter;
 	}
@@ -138,8 +125,13 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		mBtnSearch = (Button) mRootView.findViewById(R.id.btn_search);
 		mEditSearch = (EditText) mRootView.findViewById(R.id.edit_search_keys);
 		mBtnSearch.setOnClickListener(this);
-		mListAdapter = getSavedListAdapter(true);
+		mSavedListAdapter = new SavedListAdapter(mContext, null, true);
+		mPlayListAdapter = new PlayListAdapter(mContext, null, true);
+		mListAdapter = mSavedListAdapter;
 		mListView.setAdapter(mListAdapter);
+        Uri uri = Uri.parse(MusicProvider.URI_ALL_LIST);
+		mQueryHandler.startQuery( BackgroundHandler.TOKEN_QUERY_ASVED_LIST, null,
+		        uri, null, null, null, null);
 		mListView.setOnItemClickListener(this);
 		mListView.setOnCreateContextMenuListener(this);
 		View footerView = getActivity().getLayoutInflater().inflate(R.layout.layout_buttom_add_item,
@@ -172,25 +164,35 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	public void onItemClick(AdapterView<?> adapterView, View view, int index,
 			long arg3) {
 		Logger.i(TAG, "onItemClick index=" + index);
-		if (adapterView.getAdapter() instanceof SavedListAdapter2) {
-			SavedList list = mAllList.get(index);
-			mPlaylist.load(list.getListName());
-			mListAdapter = getPlayListAdapter(true);
-			getListView().setAdapter(mListAdapter);
-			showMask(MASK_EMPTY_LIST, mPlaylist.isEmpty());
-		} else if (adapterView.getAdapter() instanceof SearchResualtAdapter) {
-			MusicInfo music = mSearchResualtList.get(index);
-			mPlaylist.setProgress(-1);
-			if (sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)) {
-			}
-		} else if (adapterView.getAdapter() instanceof PlayListAdapter) {
-			MusicInfo music = mPlaylist.get(index);
-			mPlaylist.setProgress(-1);
-			mPlaylist.setCurrentIndex(index);
-			if (sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)) {
-			}
-		}else {
-			Logger.e(TAG, "Error Adapter Type");
+		Cursor cursor = (Cursor)mListAdapter.getItem(index);
+		switch(mListAdapter.getAdapterType()){
+		    case AbstractListAdapter.TYPE_SAVED_LIST:
+		        long listId = cursor.getLong(cursor.getColumnIndexOrThrow(MusicPlayerDatabase._ID));
+                Uri uri = Uri.parse(MusicProvider.URI_LIST_MUSIC).buildUpon()
+                        .appendPath(String.valueOf(listId)).build();
+//                Cursor c = mContext.getContentResolver().query(uri, null, null, null, null);
+//                mListAdapter = AbstractListAdapter.getAdapter(
+//                        AbstractListAdapter.TYPE_PLAYING_LIST, getActivity(), c, true);
+//                getListView().setAdapter(mListAdapter);
+
+                mQueryHandler.startQuery( BackgroundHandler.TOKEN_QUERY_PLAY_LIST, null,
+                        uri, null, null, null, null);
+                showMask(MASK_EMPTY_LIST, mPlaylist.isEmpty());
+		        break;
+            case AbstractListAdapter.TYPE_PLAYING_LIST:
+                MusicInfo music2 = new MusicInfo(cursor);
+                mPlaylist.setProgress(-1);
+                if (sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music2)) {
+                }
+                break;
+            case AbstractListAdapter.TYPE_SEARCH_RESULT_LIST:
+                MusicInfo music = new MusicInfo(cursor);
+                mPlaylist.setProgress(-1);
+                if (sendCmd(NotifyImpl.CMD_PLAY_EVENT, 0, 0, null, music)) {
+                }
+                break;
+            default:
+                Logger.e(TAG, "onItemClick Error Adapter Type=" + mListAdapter.getAdapterType());
 		}
 	}
 
@@ -200,18 +202,24 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		if (menuInfo != null) {
 			// jiajian
 			menu.setHeaderTitle(R.string.str_operate);
-			if (mListAdapter instanceof SavedListAdapter2) {
-				menu.add(0, MENU_ADD_MUSIC, 0, R.string.str_add_music)
-				.setOnMenuItemClickListener(this);
-				menu.add(0, MENU_DELETE, 1, R.string.str_remove)
-				.setOnMenuItemClickListener(this);
-			}else if (mListAdapter instanceof SearchResualtAdapter) {
-				menu.add(0, MENU_DOWNLOAD, 0, R.string.str_download)
-						.setOnMenuItemClickListener(this);
-			}else{
-				menu.add(0, MENU_DELETE, 1, R.string.str_remove)
-				.setOnMenuItemClickListener(this);
-			}
+	        switch(mListAdapter.getAdapterType()){
+	            case  AbstractListAdapter.TYPE_SAVED_LIST:
+	                menu.add(0, MENU_ADD_MUSIC, 0, R.string.str_add_music)
+	                .setOnMenuItemClickListener(this);
+	                menu.add(0, MENU_DELETE, 1, R.string.str_remove)
+	                .setOnMenuItemClickListener(this);
+	                break;
+	            case  AbstractListAdapter.TYPE_PLAYING_LIST:
+	                menu.add(0, MENU_DOWNLOAD, 0, R.string.str_download)
+                    .setOnMenuItemClickListener(this);
+	                break;
+	            case  AbstractListAdapter.TYPE_SEARCH_RESULT_LIST:
+	                menu.add(0, MENU_DELETE, 1, R.string.str_remove)
+	                .setOnMenuItemClickListener(this);
+	                break;
+	            default :
+	                Logger.e(TAG, "onCreateContextMenu Error Adapter Type=" + mListAdapter.getAdapterType());
+	        }
 		}
 	}
 
@@ -272,8 +280,6 @@ public class PlayListFragment extends BaseFragment implements Defines,
 				Uri uri = data.getData();
 				MusicInfo music = getMusicInfo(uri);
 				mPlaylist.add(music);
-				mListAdapter = getPlayListAdapter(true);
-				getListView().setAdapter(mListAdapter);
 			}
 			break;
 		}
@@ -281,15 +287,20 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	}
 
 	private void removeFromList(int id) {
-		if (mListAdapter instanceof SavedListAdapter2) {
-			mPlaylist.deletePlayList(mAllList.get(id).getListName());
-			mAllList.remove(id);
-			getSavedListAdapter(false).notifyDataSetChanged();
-		} else if (mListAdapter instanceof PlayListAdapter) {
-			mPlaylist.remove(id);
-			mMusicList.remove(id);
-			getPlayListAdapter(false).notifyDataSetChanged();
-		}
+        switch(mListAdapter.getAdapterType()){
+            case AbstractListAdapter.TYPE_SAVED_LIST:
+                mPlaylist.deletePlayList(mAllList.get(id).getListName());
+                mAllList.remove(id);
+                //getSavedListAdapter(false).notifyDataSetChanged();
+                break;
+            case AbstractListAdapter.TYPE_PLAYING_LIST:
+                mPlaylist.remove(id);
+                mMusicList.remove(id);
+//                getPlayListAdapter(false).notifyDataSetChanged();
+                break;
+            default:
+                Logger.e(TAG, "removeFromList Error Adapter Type=" + mListAdapter.getAdapterType());
+        }
 	}
 
 	private void search(String keys) {
@@ -329,14 +340,7 @@ public class PlayListFragment extends BaseFragment implements Defines,
 			selectMusic();
 			break;
 		case R.id.btn_add_list:
-			DialogAddList dal = new DialogAddList(getActivity(),
-					new ListChangeListner() {
-						@Override
-						public void onListChange() {
-							mListAdapter = getSavedListAdapter(true);
-							getListView().setAdapter(mListAdapter);
-						}
-					});
+			DialogAddList dal = new DialogAddList(getActivity());
 			dal.show();
 			break;
 		default:
@@ -366,18 +370,24 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	}
 
 	public boolean pressBack() {
-		if (mListAdapter instanceof SavedListAdapter2) {
-			return false;
-		} else {
-			if (mListAdapter instanceof SearchResualtAdapter){
-				showMask(MASK_LOADING, false);
-				mSearcher.cancel();
-			}
-			mListAdapter = getSavedListAdapter(true);
-			getListView().setAdapter(mListAdapter);
-			showMask(MASK_EMPTY_LIST, mAllList.isEmpty());
-			return true;
-		}
+        Uri uri = Uri.parse(MusicProvider.URI_ALL_LIST);
+	    switch(mListAdapter.getAdapterType()){
+	        case AbstractListAdapter.TYPE_SAVED_LIST:
+	            return false;
+            case AbstractListAdapter.TYPE_SEARCH_RESULT_LIST:
+                showMask(MASK_LOADING, false);
+                mSearcher.cancel();
+                mListAdapter.changeCursor(null);
+                mQueryHandler.startQuery( BackgroundHandler.TOKEN_QUERY_ASVED_LIST, null,
+                        uri, null, null, null, null);
+                return true;
+            case AbstractListAdapter.TYPE_PLAYING_LIST:
+                mListAdapter.changeCursor(null);
+                mQueryHandler.startQuery( BackgroundHandler.TOKEN_QUERY_ASVED_LIST, null,
+                        uri, null, null, null, null);
+                return true;
+	    }
+        return false;
 	}
 
 	interface ListChangeListner{
@@ -441,4 +451,34 @@ public class PlayListFragment extends BaseFragment implements Defines,
 
 		return music;
 	}
+	
+	class BackgroundHandler extends AsyncQueryHandler {
+	    static final int TOKEN_QUERY_ASVED_LIST = 0;
+        static final int TOKEN_QUERY_PLAY_LIST = 1;
+        static final int TOKEN_QUERY_SEARCH_RESULT_LIST = 2;
+        public BackgroundHandler(ContentResolver cr) {
+            super(cr);
+        }
+
+        @Override
+        protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+            switch(token){
+                case TOKEN_QUERY_ASVED_LIST:
+                    mSavedListAdapter.changeCursor(cursor);
+                    mListAdapter = mSavedListAdapter;
+                    mListView.setAdapter(mListAdapter);
+                    showMask(MASK_EMPTY_LIST, cursor.getCount() == 0);
+                    break;
+                case TOKEN_QUERY_PLAY_LIST:
+                    mPlayListAdapter.changeCursor(cursor);
+                    mListAdapter = mPlayListAdapter;
+                    mListView.setAdapter(mListAdapter);
+                    break;
+                case TOKEN_QUERY_SEARCH_RESULT_LIST:
+                    break;
+            }
+            super.onQueryComplete(token, cookie, cursor);
+        }
+	    
+    };
 }

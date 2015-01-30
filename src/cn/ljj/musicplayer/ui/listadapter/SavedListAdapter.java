@@ -1,33 +1,29 @@
 
-package cn.ljj.musicplayer.ui;
+package cn.ljj.musicplayer.ui.listadapter;
 
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
 import android.content.Context;
 import android.database.Cursor;
-import android.view.LayoutInflater;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CursorAdapter;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
-public class SavedListAdapter2 extends CursorAdapter {
-    private LayoutInflater mInflater = null;
-    public final int COLUMN_INDEX_NAME;
-    public final int COLUMN_INDEX_SIZE;
-    public final int COLUMN_INDEX_ID;
+public class SavedListAdapter extends AbstractListAdapter {
     public static final  String TAG = "SavedListAdapter2";
 
-    public SavedListAdapter2(Context context, Cursor c, boolean autoRequery) {
+    public SavedListAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
-        mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        COLUMN_INDEX_NAME = c.getColumnIndexOrThrow(MusicPlayerDatabase.LIST_NAME);
-        COLUMN_INDEX_SIZE = c.getColumnIndexOrThrow(MusicPlayerDatabase.LIST_SIZE);
-        COLUMN_INDEX_ID = c.getColumnIndexOrThrow(MusicPlayerDatabase._ID);
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+        int COLUMN_INDEX_NAME = cursor.getColumnIndexOrThrow(MusicPlayerDatabase.LIST_NAME);
+        int COLUMN_INDEX_SIZE = cursor.getColumnIndexOrThrow(MusicPlayerDatabase.LIST_SIZE);
+        int COLUMN_INDEX_ID = cursor.getColumnIndexOrThrow(MusicPlayerDatabase._ID);
         TextView name = (TextView) view.findViewById(R.id.list_name);
         String ListName = cursor.getString(COLUMN_INDEX_NAME);
         int listSize = cursor.getInt(COLUMN_INDEX_SIZE);
@@ -36,11 +32,25 @@ public class SavedListAdapter2 extends CursorAdapter {
         isPalying.setText("");
     }
 
+    public int getAdapterType() {
+        return TYPE_SAVED_LIST;
+    }
+
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         View view = null;
         view = mInflater.inflate(R.layout.list_item_playlist, parent, false);
         return view;
+    }
+
+    @Override
+    public void proessOnItemClick(AdapterView<?> adapterView, View view, int index, long arg3) {
+        
+    }
+
+    @Override
+    public void processCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        
     }
 
 }

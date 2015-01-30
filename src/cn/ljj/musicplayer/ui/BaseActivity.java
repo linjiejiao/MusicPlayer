@@ -81,7 +81,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		private PlayListFragment mPlaylist;
 		public SectionsPagerAdapter(FragmentManager fm) {
 			super(fm);
-			mPlaylist = new PlayListFragment();
+			mPlaylist = new PlayListFragment(BaseActivity.this);
 			mPlaying = new PlayingFragment();
 			mPlaylist.setCallback(mCallback);
 		}

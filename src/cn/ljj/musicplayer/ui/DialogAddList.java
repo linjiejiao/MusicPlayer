@@ -2,7 +2,6 @@ package cn.ljj.musicplayer.ui;
 
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.playlist.PlayList;
-import cn.ljj.musicplayer.ui.PlayListFragment.ListChangeListner;
 import android.app.Dialog;
 import android.content.Context;
 import android.text.TextUtils;
@@ -15,10 +14,8 @@ public class DialogAddList extends Dialog implements android.view.View.OnClickLi
 	EditText mEditName = null;
 	Button mBtnAdd = null;
 	PlayList mPlaylist = null;
-	ListChangeListner listner = null;
-	public DialogAddList(Context context, ListChangeListner l) {
+	public DialogAddList(Context context) {
 		super(context);
-		listner = l;
 		setTitle(R.string.str_add_playlist);
 		setContentView(R.layout.diaog_add_list);
 		mPlaylist = PlayList.getPlayList(context);
@@ -42,12 +39,6 @@ public class DialogAddList extends Dialog implements android.view.View.OnClickLi
 					String listName = mEditName.getText().toString();
 					mPlaylist.removeAll();
 					mPlaylist.persist(listName, false);
-
-					if (listner != null) {
-						listner.onListChange();
-						dismiss();
-					}
-
 				}
 				break;
 			}
