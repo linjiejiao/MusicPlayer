@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: C:\\Users\\jiajian.liang\\git\\MusicPlayer\\src\\cn\\ljj\\musicplayer\\player\\service\\INotify.aidl
+ * Original file: /media/D/Pro Code/git/MusicPlayer/src/cn/ljj/musicplayer/player/service/INotify.aidl
  */
 package cn.ljj.musicplayer.player.service;
 public interface INotify extends android.os.IInterface

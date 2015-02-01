@@ -325,14 +325,14 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			getPlayingFragment().setLrc(lrcPath);
 		} else {
 			Logger.e(TAG, "setLrc addObserver");
-			music.addObserver(BaseActivity.this);
+//			music.addObserver(BaseActivity.this);
 		}
 		String picPath = LrcPicManager.getPic(music);
 		if (!TextUtils.isEmpty(picPath)) {
 			getPlayingFragment().setImage(picPath);
 		} else {
 			Logger.e(TAG, "setImage addObserver");
-			music.addObserver(BaseActivity.this);
+//			music.addObserver(BaseActivity.this);
 		}
 	}
 
@@ -343,30 +343,30 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		if(!mPlaylist.get().equals(music)){
 			return;
 		}
-		switch(music.getChanged()){
-			case MusicInfo.LRCPATH_CHANGED:
-				final String lrcPath = music.getLrcPath();
-				if(!TextUtils.isEmpty(lrcPath)){
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							getPlayingFragment().setLrc(lrcPath);
-						}
-					});
-				}
-				break;
-			case MusicInfo.PICPATH_CHANGED:
-				final String picPath = music.getPicPath();
-				if(!TextUtils.isEmpty(picPath)){
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							getPlayingFragment().setImage(picPath);
-						}
-					});
-				}
-				break;
-		}
+//		switch(music.getChanged()){
+//			case MusicInfo.LRCPATH_CHANGED:
+//				final String lrcPath = music.getLrcPath();
+//				if(!TextUtils.isEmpty(lrcPath)){
+//					runOnUiThread(new Runnable() {
+//						@Override
+//						public void run() {
+//							getPlayingFragment().setLrc(lrcPath);
+//						}
+//					});
+//				}
+//				break;
+//			case MusicInfo.PICPATH_CHANGED:
+//				final String picPath = music.getPicPath();
+//				if(!TextUtils.isEmpty(picPath)){
+//					runOnUiThread(new Runnable() {
+//						@Override
+//						public void run() {
+//							getPlayingFragment().setImage(picPath);
+//						}
+//					});
+//				}
+//				break;
+//		}
 	}
 
 	@Override

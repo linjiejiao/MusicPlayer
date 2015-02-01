@@ -116,7 +116,6 @@ public class SearchResualtPaser {
 							info = null;
 							break;
 						} 
-						info.setLocation(MusicInfo.LOCATION_ONLINE);
 						infos.add(info);
 						info = null;
 					}

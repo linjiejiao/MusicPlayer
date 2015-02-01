@@ -15,6 +15,9 @@ public class BaiduMusicSearch implements Defines {
 	private String mUrl = null;
 	private String TAG = "BaiduMusicSearch";
 	SearchThread mSearchThread = null;
+	public static final  String KEY_QUERY = "query";
+	public static final  String KEY_PAGE_SIZE = "page_size";
+	public static final  String KEY_PAGE_NO = "page_no";
 
 	public interface SeachCallback {
 		public void onSearchResult(List<MusicInfo> resualt);
@@ -47,6 +50,35 @@ public class BaiduMusicSearch implements Defines {
 		}
 	}
 
+	public List<MusicInfo> searchSync(String keys, int pageSize, int pageNo) {
+		InputStream inStream = null;
+		List<MusicInfo> resualt = null;
+		try {
+			mUrl = BAIDU_QUERY_BASE + "&page_size=" + pageSize + "&page_no="
+					+ pageNo + "&query=";
+			mUrl += URLEncoder.encode(keys, "UTF-8");
+			Logger.i(TAG, "search mUrl=" + mUrl);
+			URL url = new URL(mUrl);
+			HttpURLConnection conn = (HttpURLConnection) url
+					.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(5 * 1000);
+			inStream = conn.getInputStream();
+			resualt = SearchResualtPaser.parse(inStream);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				if (inStream != null) {
+					inStream.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return resualt;
+	}
+	
 	public void cancel() {
 		if (mSearchThread != null) {
 			mSearchThread.mCancel = true;

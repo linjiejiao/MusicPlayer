@@ -8,9 +8,12 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Random;
+
 import android.content.Context;
+import android.net.Uri;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
+import cn.ljj.musicplayer.database.MusicProvider;
 
 public class PlayList implements Observer {
 	public static final int SEQ_CIRCLE = 0;
@@ -108,9 +111,9 @@ public class PlayList implements Observer {
 
 	public void setMusicList(List<MusicInfo> list ,String listNme) {
 		mMusicList.clear();
-		for(MusicInfo music:list){
-			music.addObserver(this);
-		}
+//		for(MusicInfo music:list){
+//			music.addObserver(this);
+//		}
 		mMusicList.addAll(list);
 		mCurrentIndex = 0;
 		mPlayListName = listNme;
@@ -122,7 +125,7 @@ public class PlayList implements Observer {
 	public void add(MusicInfo music) {
 //		Logger.e(TAG , "add music="+music);
 		mMusicList.add(music);
-		music.addObserver(this);
+//		music.addObserver(this);
 		if(mPlayListName != null){
 			mPersister.persist(music, mPlayListName);
 		}
@@ -201,6 +204,13 @@ public class PlayList implements Observer {
 	public int deletePlayList(String listName){
 		Logger.e(TAG , "deletePlayList listName="+listName);
 		return mPersister.deletePlayList(listName);
+	}
+
+
+	public int deletePlayList(int listId){
+		Logger.e(TAG , "deletePlayList listId="+listId);
+		Uri uri = Uri.parse(MusicProvider.URI_LIST).buildUpon().appendPath(String.valueOf(listId)).build();
+		return mContext.getContentResolver().delete(uri, null, null);
 	}
 
 	public int getProgress() {

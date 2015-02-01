@@ -2,6 +2,7 @@ package cn.ljj.musicplayer.ui.listadapter;
 
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
+import cn.ljj.musicplayer.data.StaticUtils;
 import android.content.Context;
 import android.database.Cursor;
 import android.view.ContextMenu;
@@ -42,7 +43,7 @@ public class PlayListAdapter extends AbstractListAdapter {
         TextView name = (TextView) view.findViewById(R.id.text_name);
         name.setText(music.getName());
         TextView duration = (TextView) view.findViewById(R.id.text_duration);
-        duration.setText(music.getDurationStr());
+        duration.setText(StaticUtils.getDispTime(music.getDuration()));
         TextView artist = (TextView) view.findViewById(R.id.text_artist);
         artist.setText(music.getArtist());
         TextView album = (TextView) view.findViewById(R.id.text_album);

@@ -1,32 +1,23 @@
 package cn.ljj.musicplayer.data;
 
-import java.util.Observable;
-
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class MusicInfo extends Observable implements Parcelable{
-	public static final int LOCATION_LOCAL = 0;
-	public static final int LOCATION_ONLINE = 1;
-
+public class MusicInfo implements Parcelable{
 	public static final int LRCPATH_CHANGED = 10;
 	public static final int PICPATH_CHANGED = 11;
-	
-	
-	private int mLocation = LOCATION_LOCAL;
+
+	private long _id = -1;
+	private long mListId = -1;
 	private String mName = null;
 	private String mArtist = null;
 	private String mAlbum = null;
 	private String mMusicPath = null;
 	private String mLrcPath = null;
 	private String mPicPath = null;
-	private String mDurationStr = null;
 	private int mDuration = 0;
-	private int mChanged = -1;
-	private long _id = -1;
-	private long mListId = -1;
 	//baidu music
 	private String mSongId = null;
 	private String mAllArtistId = null;
@@ -45,58 +36,47 @@ public class MusicInfo extends Observable implements Parcelable{
 	private String mFormat = null;
 	private int mRate = -1;
 	private int mSize = -1;
-	
 	private String mAppendix = null;
 	private String mContent = null;
-	public String TAG = "MusicInfo";
 
 	public MusicInfo() {
 	}
 
     public MusicInfo(Cursor cursor) {
-        int idIndex = cursor.getColumnIndex("_id");
-        int nameIndex = cursor.getColumnIndex(MusicPlayerDatabase.NAME);
-        int artistIndex = cursor.getColumnIndex(MusicPlayerDatabase.ARTIST);
-        int albumIndex = cursor.getColumnIndex(MusicPlayerDatabase.ALBUM);
-        int durationIndex = cursor.getColumnIndex(MusicPlayerDatabase.DURATION);
-        int musicPathIndex = cursor
-                .getColumnIndex(MusicPlayerDatabase.MUSIC_PATH);
-        int lrcPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.LRC_PATH);
-        int picPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.PIC_PATH);
-        int listIdIndex = cursor.getColumnIndex(MusicPlayerDatabase.LIST_ID);
-        
-        long _id = cursor.getInt(idIndex);
-        String name = cursor.getString(nameIndex);
-        String artist = cursor.getString(artistIndex);
-        String album = cursor.getString(albumIndex);
-        int duration = cursor.getInt(durationIndex);
-        String musicPath = cursor.getString(musicPathIndex);
-        String lrcPath = cursor.getString(lrcPathIndex);
-        String picPath = cursor.getString(picPathIndex);
-        long listId = cursor.getLong(listIdIndex);
+        _id = cursor.getInt(MusicPlayerDatabase.INDEX_ID);
+    	mListId = cursor.getInt(MusicPlayerDatabase.INDEX_LIST_ID);
+    	  mName = cursor.getString(MusicPlayerDatabase.INDEX_NAME);
+    	  mArtist = cursor.getString(MusicPlayerDatabase.INDEX_ARTIST);
+    	  mAlbum = cursor.getString(MusicPlayerDatabase.INDEX_ALBUM);
+    	  mMusicPath = cursor.getString(MusicPlayerDatabase.INDEX_MUSIC_PATH);
+    	  mLrcPath = cursor.getString(MusicPlayerDatabase.INDEX_LRC_PATH);
+    	  mPicPath = cursor.getString(MusicPlayerDatabase.INDEX_PIC_PATH);
+    	mDuration = cursor.getInt(MusicPlayerDatabase.INDEX_DURATION);;
 
-        setId(_id);
-        setAlbum(album);
-        setArtist(artist);
-        setDuration(duration);
-        setLrcPath(lrcPath);
-        setPicPath(picPath);
-        setListId(listId);
-        setMusicPath(musicPath);
-        setName(name);
+    	mSongId = cursor.getString(MusicPlayerDatabase.INDEX_SONG_ID);
+    	mAllArtistId = cursor.getString(MusicPlayerDatabase.INDEX_ALL_ARTIST_ID);
+    	mAlbumId = cursor.getString(MusicPlayerDatabase.INDEX_ALBUM_ID);
+    	mLrcLink = cursor.getString(MusicPlayerDatabase.INDEX_LRC_LINK);
+    	mAllRate = cursor.getString(MusicPlayerDatabase.INDEX_ALL_RATE);
+    	mCharge = cursor.getString(MusicPlayerDatabase.INDEX_CHARGE);
+    	mResourceType = cursor.getString(MusicPlayerDatabase.INDEX_RESOURCE_TYPE);
+    	mHavehigh = cursor.getString(MusicPlayerDatabase.INDEX_HAVE_HIGH);
+    	mCopyType = cursor.getString(MusicPlayerDatabase.INDEX_COPY_TYPE);
+    	mRelateStatus = cursor.getString(MusicPlayerDatabase.INDEX_RELATE_STATUS);
+    	mHasMV = cursor.getString(MusicPlayerDatabase.INDEX_HAS_MV);
+    	mSongPicSmall = cursor.getString(MusicPlayerDatabase.INDEX_SONG_PIC_SMALL);
+    	mSongPicBig = cursor.getString(MusicPlayerDatabase.INDEX_SONG_PIC_BIG);
+    	mSongPicRadio = cursor.getString(MusicPlayerDatabase.INDEX_SONG_PIC_RADIO);
+    	mFormat = cursor.getString(MusicPlayerDatabase.INDEX_FORMAT);
+    	mRate = cursor.getInt(MusicPlayerDatabase.INDEX_RATE);;
+    	mSize = cursor.getInt(MusicPlayerDatabase.INDEX_SIZE);;
+    	mAppendix = cursor.getString(MusicPlayerDatabase.INDEX_APPENDIX);
+    	mContent = cursor.getString(MusicPlayerDatabase.INDEX_CONTENT);
     }
 
 	public MusicInfo(String name, String path) {
 		mName = name;
 		mMusicPath = path;
-	}
-
-	public int getLocation() {
-		return mLocation;
-	}
-
-	public void setLocation(int location) {
-		mLocation = location;
 	}
 	
 	public String getArtist() {
@@ -129,8 +109,6 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	public void setLrcPath(String lrcPath) {
 		mLrcPath = lrcPath;
-		setChanged(LRCPATH_CHANGED);
-		notifyObservers(this);
 	}
 
 	public String getPicPath() {
@@ -139,8 +117,6 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	public void setPicPath(String picPath) {
 		mPicPath = picPath;
-		setChanged(PICPATH_CHANGED);
-		notifyObservers(this);
 	}
 
 	public String getName() {
@@ -151,17 +127,8 @@ public class MusicInfo extends Observable implements Parcelable{
 		mName = name;
 	}
 
-	public String getDurationStr() {
-		return mDurationStr;
-	}
-
-	public void setDurationStr(String durationStr) {
-		mDurationStr = durationStr;
-	}
-
 	public void setDuration(int duration) {
 		mDuration = duration;
-		setDurationStr(StaticUtils.getDispTime(duration));
 	}
 
 	public int getDuration() {
@@ -366,10 +333,10 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	@Override
 	public String toString() {
-		return "MusicInfo [isLocal=" +mLocation + ", name=" + mName + ", artist="
+		return "MusicInfo [name=" + mName + ", artist="
 				+ mArtist + ", album=" + mAlbum + ", musicPath=" + mMusicPath
 				+ ", lrcPath=" + mLrcPath + ", picPath=" + mPicPath
-				+ ", durationStr=" + mDurationStr + ", duration=" + mDuration
+				+ ", duration=" + mDuration
 				+ ", _id=" + _id + ", mSongId=" + mSongId + ", mAllArtistId="
 				+ mAllArtistId + ", mAlbumId=" + mAlbumId + ", mLrcLink="
 				+ mLrcLink + ", mAllRate=" + mAllRate + ", mCharge=" + mCharge
@@ -389,14 +356,12 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeInt(mLocation);
 		dest.writeString(mName);
 		dest.writeString(mArtist);
 		dest.writeString(mAlbum);
 		dest.writeString(mMusicPath);
 		dest.writeString(mLrcPath);
 		dest.writeString(mPicPath);
-		dest.writeString(mDurationStr);
 		dest.writeInt(mDuration);
 		dest.writeLong(_id);
 		//baidu music
@@ -421,15 +386,13 @@ public class MusicInfo extends Observable implements Parcelable{
 		dest.writeString(mContent);
 	}
 
-	public void readFromParcel(Parcel in) {  
-		mLocation = in.readInt();
+	public void readFromParcel(Parcel in) { 
 		mName = in.readString();
 		mArtist =  in.readString();
 		mAlbum =  in.readString();
 		mMusicPath = in.readString();
 		mLrcPath =  in.readString();
 		mPicPath =  in.readString();
-		mDurationStr =  in.readString();
 		mDuration = in.readInt();
 		_id = in.readLong();;
 		//baidu music
@@ -476,15 +439,6 @@ public class MusicInfo extends Observable implements Parcelable{
 
 	public void setListId(long listId) {
 		mListId = listId;
-	}
-
-	public int getChanged() {
-		return mChanged;
-	}
-
-	public void setChanged(int changed) {
-		mChanged = changed;
-		setChanged();
 	}
 
 	@Override
