@@ -2,6 +2,7 @@ package cn.ljj.musicplayer.playlist;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
@@ -16,11 +17,13 @@ import android.provider.MediaStore;
 
 public class PlayListPersister {
 	private Context mContext = null;
+	private ContentResolver mContentResolver = null;
 	private SQLiteDatabase db = null;
 	private String TAG = "PlayListPersister";
 
 	public PlayListPersister(Context context) {
 		mContext = context;
+		mContentResolver = mContext.getContentResolver();
 		db = MusicPlayerDatabase.getInstance(mContext).getWritableDatabase();
 	}
 
@@ -89,38 +92,43 @@ public class PlayListPersister {
 	}
 
 	public int persist(List<MusicInfo> list, String listName, boolean cover) {
-		Logger.d(TAG, "persist list=" + list + "; listName=" + listName
-				+ "; cover=" + cover);
-		String sql = "select _id from " + MusicPlayerDatabase.TABLE_LIST
-				+ " where " + MusicPlayerDatabase.LIST_NAME + " = '" + listName + "'";
+//		Logger.d(TAG, "persist list=" + list + "; listName=" + listName
+//				+ "; cover=" + cover);
 		Cursor cursor = null;
 		try {
 
 			long listId = -1;
-			cursor = db.rawQuery(sql, null);
+			cursor = mContentResolver.query(Uri.parse(MusicProvider.URI_ALL_LIST), null,
+			        MusicPlayerDatabase.LIST_NAME + " = '" + listName + "'", null, null);
 			if (cursor.moveToFirst()) {
 				listId = cursor.getLong(0);
 			}
 			cursor.close();
-			if (listId != -1) {
-				if (cover) {
-					// clear musics under this list
-					db.delete(MusicPlayerDatabase.TABLE_MUSICS,
-							MusicPlayerDatabase.LIST_ID + " = " + listId, null);
-				}
-			} else {
-				// create new list
-				ContentValues values = new ContentValues();
-				values.put(MusicPlayerDatabase.LIST_NAME, listName);
-				listId = db.insert(MusicPlayerDatabase.TABLE_LIST,
-						MusicPlayerDatabase.LIST_NAME, values);
+			if (listId != -1 && cover) {
+				// clear musics under this list
+	            Uri uri = Uri.parse(MusicProvider.URI_LIST).buildUpon()
+	                    .appendPath(String.valueOf(listId)).build();
+	            mContentResolver.delete(uri, null, null);
 			}
+            // create new list
+            ContentValues listValues = new ContentValues();
+            listValues.put(MusicPlayerDatabase.LIST_NAME, listName);
+            listValues.put(MusicPlayerDatabase.LIST_SIZE, list.size());
+            Uri returnUri = mContentResolver.insert(Uri.parse(MusicProvider.URI_LIST), listValues);
+            Logger.e(TAG, "persist bulkInsert returnUri:" + returnUri);
+            try {
+                listId = Integer.parseInt(returnUri.getPathSegments().get(1));
+            } catch (Exception e) {
+                listId = -1;
+                e.printStackTrace();
+            }
 			if (listId == -1) {
 				return -1;
 			}
 			// insert musics table
-			db.beginTransaction();
-			for (MusicInfo music : list) {
+			ContentValues [] cvs = new ContentValues [list.size()];
+			for (int i=0;i < list.size();i++) {
+			    MusicInfo music = list.get(i);
 				ContentValues values = new ContentValues();
 				values.put(MusicPlayerDatabase.LIST_ID, listId);
 				values.put(MusicPlayerDatabase.NAME, music.getName());
@@ -130,19 +138,13 @@ public class PlayListPersister {
 				values.put(MusicPlayerDatabase.MUSIC_PATH, music.getMusicPath());
 				values.put(MusicPlayerDatabase.LRC_PATH, music.getLrcPath());
 				values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
-				db.insert(MusicPlayerDatabase.TABLE_MUSICS,
-						MusicPlayerDatabase.NAME, values);
+				cvs[i] = values;
 			}
-			db.setTransactionSuccessful();
-			db.endTransaction();
-			// updata list count
-			sql = "select * from " + MusicPlayerDatabase.TABLE_MUSICS
-					+ " where " + MusicPlayerDatabase.LIST_ID + " = " + listId;
-			cursor = db.rawQuery(sql, null);
-			ContentValues values = new ContentValues();
-			values.put(MusicPlayerDatabase.LIST_SIZE, cursor.getCount());
-			db.update(MusicPlayerDatabase.TABLE_LIST, values,
-					" _id = " + listId, null);
+            Uri url = Uri.parse(MusicProvider.URI_MUSIC);
+            long t = System.currentTimeMillis();
+            
+			mContentResolver.bulkInsert(url, cvs);
+			Logger.e(TAG, "persist bulkInsert cost:" + (System.currentTimeMillis() - t));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return -1;
@@ -297,7 +299,6 @@ public class PlayListPersister {
 		String sql = "select * from " + MusicPlayerDatabase.TABLE_LIST;
 		Cursor cursor = null;
 		try {
-//			cursor = db.rawQuery(sql, null);
 		    Uri uri = Uri.parse(MusicProvider.URI_ALL_LIST);
 		    cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 			int idIndex = cursor.getColumnIndex("_id");

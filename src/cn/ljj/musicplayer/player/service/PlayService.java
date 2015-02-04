@@ -37,7 +37,6 @@ public class PlayService extends Service implements OnCompletionListener {
 		mPlayer =  new Player();
 		mPlayer.setOnCompletionListener(this);
 		mHandler = new Handler();
-		mHandler.postDelayed(mUpdateTimer, 200);
 		super.onCreate();
 	}
 
@@ -66,10 +65,12 @@ public class PlayService extends Service implements OnCompletionListener {
 					event.setMusic(music);
 					event.setIntValue(intValue);
 					mPlayer.handelEvent(event);
+			        mHandler.postDelayed(mUpdateTimer, 100);
 					break;
 				case CMD_STOP_EVENT:
 					event.setEventCode(PlayEvent.EVENT_STOP);
 					mPlayer.handelEvent(event);
+			        mHandler.removeCallbacks(mUpdateTimer);
 					break;
 				case CMD_SEEK_EVENT:
 					event.setEventCode(PlayEvent.EVENT_SEEK);

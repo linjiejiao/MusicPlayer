@@ -16,7 +16,9 @@ import android.net.Uri;
 
 public class MusicProvider extends ContentProvider {
 	private MusicPlayerDatabase mDBHelper = null;
-	ContentResolver mContentResolver = null;
+	private ContentResolver mContentResolver = null;
+	private SQLiteDatabase mDatabase = null;
+
 	private static String TAG = "MusicProvider";
 	public static final String AUTHORITY = "music-provider";
 	public static final String URI_BASE = "content://" + AUTHORITY;
@@ -48,32 +50,31 @@ public class MusicProvider extends ContentProvider {
 		Logger.d(TAG, "delete " + uri + "; selection=" + selection
 				+ "; selectionArgs=" + Arrays.toString(selectionArgs));
 		int ret = 0;
-		SQLiteDatabase db = mDBHelper.getWritableDatabase();
 		int match = sMatcher.match(uri);
 		switch (match) {
 		case ALL_LIST:
-			ret = db.delete(MusicPlayerDatabase.TABLE_LIST, selection,
+			ret = mDatabase.delete(MusicPlayerDatabase.TABLE_LIST, selection,
 					selectionArgs);
 			break;
 		case LIST:
-			ret = db.delete(MusicPlayerDatabase.TABLE_LIST, "_id = "
+			ret = mDatabase.delete(MusicPlayerDatabase.TABLE_LIST, "_id = "
 					+ uri.getPathSegments().get(1), null);
 			if (ret > 0) {
-				db.delete(MusicPlayerDatabase.TABLE_MUSICS,
+			    mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS,
 						MusicPlayerDatabase.LIST_ID + " = "
 								+ uri.getPathSegments().get(1), null);
 			}
 			break;
 		case ALL_MUSIC:
-			ret = db.delete(MusicPlayerDatabase.TABLE_MUSICS, selection,
+			ret = mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS, selection,
 					selectionArgs);
 			break;
 		case MUSIC:
-			ret = db.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = "
+			ret = mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = "
 					+ uri.getPathSegments().get(1), null);
 			break;
 		case LIST_MUSIC:
-			ret = db.delete(MusicPlayerDatabase.TABLE_MUSICS,
+			ret = mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS,
 					MusicPlayerDatabase.LIST_ID + " = "
 							+ uri.getPathSegments().get(2), null);
 			break;
@@ -97,23 +98,22 @@ public class MusicProvider extends ContentProvider {
 		Logger.d(TAG, "insert " + uri + " values=" + values);
 		long ret = 0;
 		Uri retUri = null;
-		SQLiteDatabase db = mDBHelper.getWritableDatabase();
 		int match = sMatcher.match(uri);
 		switch (match) {
 		case LIST:
-			ret = db.insert(MusicPlayerDatabase.TABLE_LIST, null, values);
+        case ALL_LIST:
+			ret = mDatabase.insert(MusicPlayerDatabase.TABLE_LIST, null, values);
 			break;
 		case MUSIC:
-			ret = db.insert(MusicPlayerDatabase.TABLE_MUSICS, null, values);
+        case ALL_MUSIC:
+			ret = mDatabase.insert(MusicPlayerDatabase.TABLE_MUSICS, null, values);
 			break;
-		case ALL_MUSIC:
 		case LIST_MUSIC:
-		case ALL_LIST:
 		case INTERNET:
 		default:
 			Logger.e(TAG, "insert " + uri + " is not yet supported!");
 		}
-		if (ret > 0) {
+		if (ret > 0 && !mDatabase.inTransaction()) {
 			mContentResolver.notifyChange(uri, null);
 			retUri = uri.buildUpon().appendPath(String.valueOf(ret)).build();
 		}
@@ -124,6 +124,7 @@ public class MusicProvider extends ContentProvider {
 	public boolean onCreate() {
 		mDBHelper = MusicPlayerDatabase.getInstance(getContext());
 		mContentResolver = getContext().getContentResolver();
+        mDatabase = mDBHelper.getWritableDatabase();
 		return false;
 	}
 
@@ -136,29 +137,28 @@ public class MusicProvider extends ContentProvider {
 						+ Arrays.toString(selectionArgs) + "; sortOrder="
 						+ sortOrder);
 		Cursor cursor = null;
-		SQLiteDatabase db = mDBHelper.getReadableDatabase();
 		int match = sMatcher.match(uri);
 		switch (match) {
 		case ALL_LIST:
-			cursor = db.query(MusicPlayerDatabase.TABLE_LIST, projection,
+			cursor = mDatabase.query(MusicPlayerDatabase.TABLE_LIST, projection,
 					selection, selectionArgs, null, null, sortOrder);
 			break;
 		case LIST:
-			cursor = db.query(MusicPlayerDatabase.TABLE_LIST, projection,
+			cursor = mDatabase.query(MusicPlayerDatabase.TABLE_LIST, projection,
 					"_id = " + uri.getPathSegments().get(1), null, null, null,
 					null);
 			break;
 		case ALL_MUSIC:
-			cursor = db.query(MusicPlayerDatabase.TABLE_MUSICS, projection,
+			cursor = mDatabase.query(MusicPlayerDatabase.TABLE_MUSICS, projection,
 					selection, selectionArgs, null, null, sortOrder);
 			break;
 		case MUSIC:
-			cursor = db.query(MusicPlayerDatabase.TABLE_MUSICS, projection,
+			cursor = mDatabase.query(MusicPlayerDatabase.TABLE_MUSICS, projection,
 					"_id = " + uri.getPathSegments().get(1), null, null, null,
 					null);
 			break;
 		case LIST_MUSIC:
-			cursor = db.query(MusicPlayerDatabase.TABLE_MUSICS, projection,
+			cursor = mDatabase.query(MusicPlayerDatabase.TABLE_MUSICS, projection,
 					MusicPlayerDatabase.LIST_ID + " = "
 							+ uri.getPathSegments().get(2), null, null, null,
 					null);
@@ -189,27 +189,26 @@ public class MusicProvider extends ContentProvider {
 						+ values + "; selectionArgs="
 						+ Arrays.toString(selectionArgs));
 		int match = sMatcher.match(uri);
-		SQLiteDatabase db = mDBHelper.getWritableDatabase();
 		int ret = 0;
 		switch (match) {
 		case ALL_LIST:
-			ret = db.update(MusicPlayerDatabase.TABLE_LIST, values, selection,
+			ret = mDatabase.update(MusicPlayerDatabase.TABLE_LIST, values, selection,
 					selectionArgs);
 			break;
 		case LIST:
-			ret = db.update(MusicPlayerDatabase.TABLE_LIST, values, "_id = "
+			ret = mDatabase.update(MusicPlayerDatabase.TABLE_LIST, values, "_id = "
 					+ uri.getPathSegments().get(1), null);
 			break;
 		case ALL_MUSIC:
-			ret = db.update(MusicPlayerDatabase.TABLE_MUSICS, values,
+			ret = mDatabase.update(MusicPlayerDatabase.TABLE_MUSICS, values,
 					selection, selectionArgs);
 			break;
 		case MUSIC:
-			ret = db.update(MusicPlayerDatabase.TABLE_MUSICS, values, "_id = "
+			ret = mDatabase.update(MusicPlayerDatabase.TABLE_MUSICS, values, "_id = "
 					+ uri.getPathSegments().get(1), null);
 			break;
 		case LIST_MUSIC:
-			ret = db.update(MusicPlayerDatabase.TABLE_MUSICS, values,
+			ret = mDatabase.update(MusicPlayerDatabase.TABLE_MUSICS, values,
 					MusicPlayerDatabase.LIST_ID + " = "
 							+ uri.getPathSegments().get(2), null);
 			break;
@@ -223,7 +222,29 @@ public class MusicProvider extends ContentProvider {
 		return ret;
 	}
 
-	private Cursor getFromInternet(String keys, String pageSizeStr,
+	
+	@Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+	    int ret = 0;
+	    mDatabase.beginTransaction();
+        try {
+            for(ContentValues cv : values){
+                insert(uri, cv);
+                ret ++;
+            }
+            mDatabase.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally{
+            mDatabase.endTransaction();
+            if(ret > 1){
+                mContentResolver.notifyChange(uri, null);
+            }
+        }
+        return ret;
+    }
+
+    private Cursor getFromInternet(String keys, String pageSizeStr,
 			String pageNoStr) {
 		Logger.d(TAG, "getFromInternet searching music on thread " + Thread.currentThread());
 		MatrixCursor cursor = new MatrixCursor(
