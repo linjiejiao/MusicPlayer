@@ -6,7 +6,7 @@
 
     <Button
         android:background="@drawable/bottom_round"
-        android:id="@+id/btn_add_list"
+        android:id="@+id/btn_add_to_list"
         android:text="@string/str_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

@@ -34,11 +34,12 @@ public class DialogAddList extends Dialog implements android.view.View.OnClickLi
 			switch (view.getId()) {
 			case R.id.btn_add:
 				if (TextUtils.isEmpty(mEditName.getText().toString())) {
-
+				    
 				} else {
 					String listName = mEditName.getText().toString();
 					mPlaylist.removeAll();
 					mPlaylist.persist(listName, false);
+					dismiss();
 				}
 				break;
 			}

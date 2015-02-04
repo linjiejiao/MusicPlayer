@@ -35,7 +35,7 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
-public class BaseActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener,Observer{
+public class BaseActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener{
 	public static  String TAG = "BaseActivity";
 	SectionsPagerAdapter mSectionsPagerAdapter;
 	ViewPager mViewPager;
@@ -325,18 +325,16 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 			getPlayingFragment().setLrc(lrcPath);
 		} else {
 			Logger.e(TAG, "setLrc addObserver");
-//			music.addObserver(BaseActivity.this);
 		}
 		String picPath = LrcPicManager.getPic(music);
 		if (!TextUtils.isEmpty(picPath)) {
 			getPlayingFragment().setImage(picPath);
 		} else {
 			Logger.e(TAG, "setImage addObserver");
-//			music.addObserver(BaseActivity.this);
 		}
 	}
 
-	@Override
+//	@Override
 	public void update(Observable observable, Object data) {
 		Logger.v(TAG, "update");
 		MusicInfo music = (MusicInfo)data;

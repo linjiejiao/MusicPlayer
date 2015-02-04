@@ -48,20 +48,18 @@ public final class R {
         public static final int song_pic_default=0x7f020018;
     }
     public static final class id {
-        public static final int action_search=0x7f09001c;
-        public static final int action_settings=0x7f09001d;
+        public static final int action_search=0x7f090019;
+        public static final int action_settings=0x7f09001a;
         public static final int btn_add=0x7f090008;
-        public static final int btn_add_list=0x7f090014;
-        public static final int btn_add_music=0x7f090013;
+        public static final int btn_add_to_list=0x7f090011;
         public static final int btn_search=0x7f09000d;
         public static final int buttonNext=0x7f090003;
         public static final int buttonPlay=0x7f090002;
         public static final int buttonPrev=0x7f090001;
         public static final int edit_list_name=0x7f090007;
         public static final int edit_search_keys=0x7f09000c;
-        public static final int list_name=0x7f09001a;
+        public static final int list_name=0x7f090017;
         public static final int lrc_view=0x7f09000a;
-        public static final int mask_empty_list=0x7f090011;
         public static final int mask_loading=0x7f09000f;
         public static final int pager=0x7f090000;
         public static final int playlist_view=0x7f09000e;
@@ -69,13 +67,12 @@ public final class R {
         public static final int search_view=0x7f09000b;
         public static final int seek_play_progress=0x7f090005;
         public static final int song_pic=0x7f090009;
-        public static final int textView1=0x7f090012;
-        public static final int text_album=0x7f090019;
-        public static final int text_artist=0x7f090018;
-        public static final int text_duration=0x7f090017;
-        public static final int text_index=0x7f090015;
-        public static final int text_isplaying=0x7f09001b;
-        public static final int text_name=0x7f090016;
+        public static final int text_album=0x7f090016;
+        public static final int text_artist=0x7f090015;
+        public static final int text_duration=0x7f090014;
+        public static final int text_index=0x7f090012;
+        public static final int text_isplaying=0x7f090018;
+        public static final int text_name=0x7f090013;
         public static final int text_time_all=0x7f090006;
         public static final int text_time_passed=0x7f090004;
     }
