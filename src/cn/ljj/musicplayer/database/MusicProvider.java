@@ -84,6 +84,7 @@ public class MusicProvider extends ContentProvider {
                 Logger.e(TAG, "delete " + uri + " is not yet supported!");
         }
         if (ret > 0) {
+            Logger.e(TAG, "delete notifyChange" + uri);
             mContentResolver.notifyChange(uri, null);
         }
         return ret;
@@ -109,6 +110,7 @@ public class MusicProvider extends ContentProvider {
             case ALL_MUSIC:
                 Long listId = values.getAsLong(MusicPlayerDatabase.LIST_ID);
                 if (listId == null) {
+                    Logger.e(TAG, "insert " + uri + " listId=" + listId);
                     return null;
                 }
                 Cursor cursor = null;
@@ -117,6 +119,7 @@ public class MusicProvider extends ContentProvider {
                             MusicPlayerDatabase._ID + "=" + listId.longValue(), null, null, null,
                             null);
                     if (cursor.getCount() == 0) {
+                        Logger.e(TAG, "insert " + uri + " cursor.getCount()=" + cursor.getCount());
                         return null;
                     }
                 } catch (Exception e) {
@@ -128,6 +131,7 @@ public class MusicProvider extends ContentProvider {
                     }
                 }
                 ret = mDatabase.insert(MusicPlayerDatabase.TABLE_MUSICS, null, values);
+                Logger.e(TAG, "insert " + uri + " ret=" + ret);
                 updateListSize(listId);
                 break;
             case LIST_MUSIC:
@@ -193,6 +197,7 @@ public class MusicProvider extends ContentProvider {
         if (cursor != null) {
             cursor.setNotificationUri(mContentResolver, uri);
         }
+        Logger.d(TAG, "query cursor.getCount=" + cursor.getCount());
         return cursor;
     }
 

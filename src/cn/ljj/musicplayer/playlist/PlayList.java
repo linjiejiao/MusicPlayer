@@ -124,21 +124,13 @@ public class PlayList {
 
     public void add(MusicInfo music) {
         mMusicList.add(music);
-        mPersister.persist(music, mListId);
+        mPersister.persistMusic(music, mListId);
     }
 
     public void remove(int index) {
         Logger.e(TAG, "remove from mListId=" + mListId + " index=" + index);
         if (mListId != -1) {
-            long deleteId = get(index).getId();
-            long listId = get(index).getListId();
-            mPersister.removeMusic(deleteId, listId);
-        }
-        mMusicList.remove(index);
-        if (index == mCurrentIndex) {
-            mCurrentIndex = 0;
-        } else if (index < mCurrentIndex) {
-            mCurrentIndex--;
+            mPersister.deleteMusic(index);
         }
     }
 
@@ -209,6 +201,6 @@ public class PlayList {
     }
 
     public long update(MusicInfo music) {
-        return mPersister.update(music);
+        return mPersister.updateMusic(music);
     }
 }

@@ -1,8 +1,5 @@
 package cn.ljj.musicplayer.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
@@ -15,7 +12,6 @@ import cn.ljj.musicplayer.files.Downloader.DownloadCallback;
 import cn.ljj.musicplayer.player.service.INotify;
 import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.playlist.PlayList;
-import cn.ljj.musicplayer.playlist.SavedList;
 import cn.ljj.musicplayer.ui.listadapter.AbstractListAdapter;
 import cn.ljj.musicplayer.ui.listadapter.PlayListAdapter;
 import cn.ljj.musicplayer.ui.listadapter.SavedListAdapter;
@@ -61,9 +57,6 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	private Button mBtnSearch = null;
 	private EditText mEditSearch = null;
 	private PlayList mPlaylist = null;
-	private List<SavedList> mAllList = new ArrayList<SavedList>();
-	private List<MusicInfo> mMusicList = new ArrayList<MusicInfo>();
-//	private List<MusicInfo> mSearchResualtList = new ArrayList<MusicInfo>();
 	private AbstractListAdapter mListAdapter = null;
 	private SavedListAdapter mSavedListAdapter = null;
 	private PlayListAdapter mPlayListAdapter = null;
@@ -83,11 +76,6 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		mRootView = inflater.inflate(R.layout.fragment_playlist, container,
 				false);
 		mPlaylist = PlayList.getPlayList(getActivity());
-//		mPlaylist.load("MediaStore");
-//		if (mPlaylist.isEmpty()) {
-//			mPlaylist.loadFromMediaStore();
-//			mPlaylist.persist("MediaStore", true);
-//		}
 		try {
 			initViews();
 		} catch (Exception e) {
@@ -147,10 +135,9 @@ public class PlayListFragment extends BaseFragment implements Defines,
 		    case AbstractListAdapter.TYPE_SAVED_LIST:
 		        long listId = cursor.getLong(cursor.getColumnIndexOrThrow(MusicPlayerDatabase._ID));
 		        mPlaylist.setListId(listId);
-                Uri uri = MusicProvider.URI_LIST_MUSIC.buildUpon()
-                        .appendPath(String.valueOf(listId)).build();
+                Uri uri = MusicProvider.URI_MUSIC;
                 mQueryHandler.startQuery( BackgroundHandler.TOKEN_QUERY_PLAY_LIST, null,
-                        uri, null, null, null, MusicPlayerDatabase.NAME);
+                        uri, null, MusicPlayerDatabase.LIST_ID + "=" + listId, null, MusicPlayerDatabase.NAME);
 		        break;
             case AbstractListAdapter.TYPE_PLAYING_LIST:
                 MusicInfo music2 = new MusicInfo(cursor);
@@ -269,7 +256,6 @@ public class PlayListFragment extends BaseFragment implements Defines,
         switch(mListAdapter.getAdapterType()){
             case AbstractListAdapter.TYPE_SAVED_LIST:
                 mPlaylist.deletePlayList(id);
-//                mAllList.remove(id);
                 break;
             case AbstractListAdapter.TYPE_PLAYING_LIST:
                 mPlaylist.remove(id);
@@ -339,7 +325,6 @@ public class PlayListFragment extends BaseFragment implements Defines,
 	            return false;
             case AbstractListAdapter.TYPE_SEARCH_RESULT_LIST:
                 showMask(MASK_LOADING, false);
-//                mSearcher.cancel();
                 mQueryHandler.cancelOperation(BackgroundHandler.TOKEN_QUERY_SEARCH_RESULT_LIST);
                 mListAdapter.changeCursor(null);
                 mQueryHandler.startQuery( BackgroundHandler.TOKEN_QUERY_SAVED_LIST, null,

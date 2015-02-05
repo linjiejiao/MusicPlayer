@@ -3,7 +3,6 @@ package cn.ljj.musicplayer.playlist;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
@@ -12,71 +11,24 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.MediaStore;
 
 public class PlayListPersister {
     private Context mContext = null;
     private ContentResolver mContentResolver = null;
-    private SQLiteDatabase db = null;
     private String TAG = "PlayListPersister";
 
     public PlayListPersister(Context context) {
         mContext = context;
         mContentResolver = mContext.getContentResolver();
-        db = MusicPlayerDatabase.getInstance(mContext).getWritableDatabase();
-    }
-
-    public List<MusicInfo> load(long listId) {
-        Logger.d(TAG, "load listId=" + listId);
-        List<MusicInfo> list = new ArrayList<MusicInfo>();
-        Cursor cursor = null;
-        try {
-            Uri uri = MusicProvider.URI_LIST.buildUpon().appendPath(String.valueOf(listId)).build();
-            cursor = mContentResolver.query(uri, null, null, null, null);
-            list = getMusics(cursor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-        return list;
     }
 
     protected List<MusicInfo> getMusics(Cursor cursor) {
         List<MusicInfo> list = new ArrayList<MusicInfo>();
-        int idIndex = cursor.getColumnIndex("_id");
-        int nameIndex = cursor.getColumnIndex(MusicPlayerDatabase.NAME);
-        int artistIndex = cursor.getColumnIndex(MusicPlayerDatabase.ARTIST);
-        int albumIndex = cursor.getColumnIndex(MusicPlayerDatabase.ALBUM);
-        int durationIndex = cursor.getColumnIndex(MusicPlayerDatabase.DURATION);
-        int musicPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.MUSIC_PATH);
-        int lrcPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.LRC_PATH);
-        int picPathIndex = cursor.getColumnIndex(MusicPlayerDatabase.PIC_PATH);
-        int listIdIndex = cursor.getColumnIndex(MusicPlayerDatabase.LIST_ID);
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
-            long _id = cursor.getInt(idIndex);
-            String name = cursor.getString(nameIndex);
-            String artist = cursor.getString(artistIndex);
-            String album = cursor.getString(albumIndex);
-            int duration = cursor.getInt(durationIndex);
-            String musicPath = cursor.getString(musicPathIndex);
-            String lrcPath = cursor.getString(lrcPathIndex);
-            String picPath = cursor.getString(picPathIndex);
-            long listId = cursor.getLong(listIdIndex);
-
-            MusicInfo music = new MusicInfo(name, musicPath);
-            music.setId(_id);
-            music.setAlbum(album);
-            music.setArtist(artist);
-            music.setDuration(duration);
-            music.setLrcPath(lrcPath);
-            music.setPicPath(picPath);
-            music.setListId(listId);
+            MusicInfo music = new MusicInfo(cursor);
             list.add(music);
         }
         return list;
@@ -119,16 +71,8 @@ public class PlayListPersister {
             ContentValues[] cvs = new ContentValues[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 MusicInfo music = list.get(i);
-                ContentValues values = new ContentValues();
-                values.put(MusicPlayerDatabase.LIST_ID, listId);
-                values.put(MusicPlayerDatabase.NAME, music.getName());
-                values.put(MusicPlayerDatabase.ALBUM, music.getAlbum());
-                values.put(MusicPlayerDatabase.ARTIST, music.getArtist());
-                values.put(MusicPlayerDatabase.DURATION, music.getDuration());
-                values.put(MusicPlayerDatabase.MUSIC_PATH, music.getMusicPath());
-                values.put(MusicPlayerDatabase.LRC_PATH, music.getLrcPath());
-                values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
-                cvs[i] = values;
+                music.setListId(listId);
+                cvs[i] = getContentValues(music);;
             }
             mContentResolver.bulkInsert(MusicProvider.URI_MUSIC, cvs);
         } catch (Exception e) {
@@ -190,21 +134,13 @@ public class PlayListPersister {
         return list;
     }
 
-    public Long persist(MusicInfo music, long listId) {
+    public Long persistMusic(MusicInfo music, long listId) {
         Logger.d(TAG, "persist music=" + music + "; listId=" + listId);
         if (listId == -1) {
             return listId;
         }
         try {
-            ContentValues values = new ContentValues();
-            values.put(MusicPlayerDatabase.LIST_ID, listId);
-            values.put(MusicPlayerDatabase.NAME, music.getName());
-            values.put(MusicPlayerDatabase.ALBUM, music.getAlbum());
-            values.put(MusicPlayerDatabase.ARTIST, music.getArtist());
-            values.put(MusicPlayerDatabase.DURATION, music.getDuration());
-            values.put(MusicPlayerDatabase.MUSIC_PATH, music.getMusicPath());
-            values.put(MusicPlayerDatabase.LRC_PATH, music.getLrcPath());
-            values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
+            ContentValues values = getContentValues(music);
             Uri musicUri = mContentResolver.insert(MusicProvider.URI_MUSIC, values);
             if (musicUri != null) {
                 music.setListId(listId);
@@ -218,13 +154,14 @@ public class PlayListPersister {
         return listId;
     }
 
-    public long removeMusic(long musicId, long listId) {
+    public long deleteMusic(long musicId) {
         Logger.i(TAG, "removeMusic MusicId=" + musicId);
-        if (musicId == -1 || listId == -1) {
+        if (musicId == -1) {
             return -1;
         }
-        db.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = " + musicId, null);
-        return listId;
+        Uri url = MusicProvider.URI_MUSIC.buildUpon().appendPath(String.valueOf(musicId)).build();
+        int ret = mContentResolver.delete(url, null, null);
+        return ret;
     }
 
     public int deletePlayList(long listId) {
@@ -234,20 +171,47 @@ public class PlayListPersister {
         return ret;
     }
 
-    public long update(MusicInfo music) {
+    public long updateMusic(MusicInfo music) {
+        int ret = -1;
         long musicId = music.getId();
         if (musicId != -1) {
-            ContentValues values = new ContentValues();
-            values.put(MusicPlayerDatabase.NAME, music.getName());
-            values.put(MusicPlayerDatabase.ALBUM, music.getAlbum());
-            values.put(MusicPlayerDatabase.ARTIST, music.getArtist());
-            values.put(MusicPlayerDatabase.DURATION, music.getDuration());
-            values.put(MusicPlayerDatabase.MUSIC_PATH, music.getMusicPath());
-            values.put(MusicPlayerDatabase.LRC_PATH, music.getLrcPath());
-            values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
-            musicId = db.update(MusicPlayerDatabase.TABLE_MUSICS, values, "_id=" + musicId, null);
+            ContentValues values = getContentValues(music);
+            Uri url = MusicProvider.URI_MUSIC.buildUpon().appendPath(String.valueOf(musicId)).build();
+            ret = mContentResolver.update(url, values, null, null);
         }
-        return musicId;
+        return ret;
     }
 
+    private ContentValues getContentValues(MusicInfo music){
+        ContentValues values = new ContentValues();
+        values.put(MusicPlayerDatabase.LIST_ID, music.getListId());
+        values.put(MusicPlayerDatabase.NAME, music.getName());
+        values.put(MusicPlayerDatabase.ALBUM, music.getAlbum());
+        values.put(MusicPlayerDatabase.ARTIST, music.getArtist());
+        values.put(MusicPlayerDatabase.DURATION, music.getDuration());
+        values.put(MusicPlayerDatabase.MUSIC_PATH, music.getMusicPath());
+        values.put(MusicPlayerDatabase.LRC_PATH, music.getLrcPath());
+        values.put(MusicPlayerDatabase.PIC_PATH, music.getPicPath());
+
+        values.put(MusicPlayerDatabase.SONG_ID, music.getSongId());
+        values.put(MusicPlayerDatabase.ALL_ARTIST_ID, music.getAllArtistId());
+        values.put(MusicPlayerDatabase.ALBUM_ID, music.getAlbumId());
+        values.put(MusicPlayerDatabase.LRC_LINK, music.getLrclink());
+        values.put(MusicPlayerDatabase.ALL_RATE, music.getRate());
+        values.put(MusicPlayerDatabase.CHARGE, music.getCharge());
+        values.put(MusicPlayerDatabase.RESOURCE_TYPE, music.getResourceType());
+        values.put(MusicPlayerDatabase.HAVE_HIGH, music.getHavehigh());
+        values.put(MusicPlayerDatabase.COPY_TYPE, music.getCopyType());
+        values.put(MusicPlayerDatabase.RELATE_STATUS, music.getRelateStatus());
+        values.put(MusicPlayerDatabase.HAS_MV, music.getHasMv());
+        values.put(MusicPlayerDatabase.SONG_PIC_SMALL, music.getSongPicSmall());
+        values.put(MusicPlayerDatabase.SONG_PIC_BIG, music.getSongPicBig());
+        values.put(MusicPlayerDatabase.SONG_PIC_RADIO, music.getSongPicRadio());
+        values.put(MusicPlayerDatabase.FORMAT, music.getFormat());
+        values.put(MusicPlayerDatabase.RATE, music.getRate());
+        values.put(MusicPlayerDatabase.SIZE, music.getSize());
+        values.put(MusicPlayerDatabase.APPENDIX, music.getAppendix());
+        values.put(MusicPlayerDatabase.CONTENT, music.getContent());
+        return values;
+    }
 }
