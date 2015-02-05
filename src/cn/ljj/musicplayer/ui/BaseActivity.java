@@ -1,12 +1,10 @@
 package cn.ljj.musicplayer.ui;
 
-import java.util.Observable;
-import java.util.Observer;
-
 import cn.ljj.musicplayer.R;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.data.StaticUtils;
 import cn.ljj.musicplayer.database.Logger;
+import cn.ljj.musicplayer.database.MusicProvider;
 import cn.ljj.musicplayer.player.service.INotify;
 import cn.ljj.musicplayer.player.service.NotifyImpl;
 import cn.ljj.musicplayer.player.service.PlayService;
@@ -18,7 +16,10 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
@@ -46,6 +47,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 	TextView mTextTimeAll = null;
 	SeekBar mSeekPlayProgress = null;
 	PlayList mPlaylist = null;
+	private DatabaseObserver mDatabaseObserver = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -53,7 +55,9 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		mPlaylist = PlayList.getPlayList(this);
 		initViews();
 		bindService();
-		
+		mDatabaseObserver= new DatabaseObserver(new Handler());
+		getContentResolver().registerContentObserver(MusicProvider.URI_MUSIC,
+		        true, mDatabaseObserver);
 	}
 
 	private void initViews(){
@@ -154,11 +158,6 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 					getPlayListFragment().getSearchView().setVisibility(View.VISIBLE);
 					mViewPager.setCurrentItem(0);
 				}
-				break;
-			case R.id.action_settings:
-				Intent intent = new Intent();
-				intent.setClass(this, SettingActivity.class);
-				startActivity(intent);
 				break;
 		}
 		return super.onOptionsItemSelected(item);
@@ -294,7 +293,7 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 							try {
 								mBtnPlay.setBackgroundResource(R.drawable.button_pause);
 								mBtnPlay.setTag(BaseActivity.this);
-								setTitle(mPlaylist.get().getName());
+								setTitle(music.getName());
 								initLrcPic(music);
 								getPlayListFragment().getListView()
 									.setSelection(mPlaylist.getCurrentIndex());
@@ -320,51 +319,18 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 		lastMusic = music;
 		getPlayingFragment().setLrc(null);
 		getPlayingFragment().setImage(null);
-		String lrcPath = LrcPicManager.getLrc(music);
+		String lrcPath = LrcPicManager.getInstance(this).getLrc(music);
 		if (!TextUtils.isEmpty(lrcPath)) {
 			getPlayingFragment().setLrc(lrcPath);
 		} else {
 			Logger.e(TAG, "setLrc addObserver");
 		}
-		String picPath = LrcPicManager.getPic(music);
+		String picPath = LrcPicManager.getInstance(this).getPic(music);
 		if (!TextUtils.isEmpty(picPath)) {
 			getPlayingFragment().setImage(picPath);
 		} else {
 			Logger.e(TAG, "setImage addObserver");
 		}
-	}
-
-//	@Override
-	public void update(Observable observable, Object data) {
-		Logger.v(TAG, "update");
-		MusicInfo music = (MusicInfo)data;
-		if(!mPlaylist.get().equals(music)){
-			return;
-		}
-//		switch(music.getChanged()){
-//			case MusicInfo.LRCPATH_CHANGED:
-//				final String lrcPath = music.getLrcPath();
-//				if(!TextUtils.isEmpty(lrcPath)){
-//					runOnUiThread(new Runnable() {
-//						@Override
-//						public void run() {
-//							getPlayingFragment().setLrc(lrcPath);
-//						}
-//					});
-//				}
-//				break;
-//			case MusicInfo.PICPATH_CHANGED:
-//				final String picPath = music.getPicPath();
-//				if(!TextUtils.isEmpty(picPath)){
-//					runOnUiThread(new Runnable() {
-//						@Override
-//						public void run() {
-//							getPlayingFragment().setImage(picPath);
-//						}
-//					});
-//				}
-//				break;
-//		}
 	}
 
 	@Override
@@ -395,5 +361,34 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
 
 	public interface BackKeyListner{
 		public boolean pressBack();
+	}
+	
+	class DatabaseObserver extends ContentObserver{
+
+        public DatabaseObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            Logger.e(TAG, "onChange uri="+uri);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String lrcPath = lastMusic.getLrcPath();
+                    if (!TextUtils.isEmpty(lrcPath)) {
+                        getPlayingFragment().setLrc(lrcPath);
+                    } else {
+                        Logger.e(TAG, "onChange lrcPath="+lrcPath);
+                    }
+                    String picPath = lastMusic.getPicPath();
+                    if (!TextUtils.isEmpty(picPath)) {
+                        getPlayingFragment().setImage(picPath);
+                    } else {
+                        Logger.e(TAG, "onChange picPath="+picPath);
+                    }
+                }
+            });
+        }
 	}
 }

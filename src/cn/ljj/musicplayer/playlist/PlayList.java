@@ -12,6 +12,7 @@ import android.database.Cursor;
 import cn.ljj.musicplayer.data.MusicInfo;
 import cn.ljj.musicplayer.database.Logger;
 import cn.ljj.musicplayer.database.MusicPlayerDatabase;
+import cn.ljj.musicplayer.database.MusicProvider;
 
 public class PlayList {
     public static final String TAG = "PlayList";
@@ -124,6 +125,7 @@ public class PlayList {
 
     public void add(MusicInfo music) {
         mMusicList.add(music);
+        music.setListId(mListId);
         mPersister.persistMusic(music, mListId);
     }
 
@@ -181,6 +183,7 @@ public class PlayList {
             listId = cursor.getLong(MusicPlayerDatabase.INDEX_LIST_ID);
         }
         setMusicList(mPersister.getMusics(cursor), listId);
+        Logger.e(TAG, "loadFromCursor listId =" + listId);
         return mMusicList.size();
     }
 

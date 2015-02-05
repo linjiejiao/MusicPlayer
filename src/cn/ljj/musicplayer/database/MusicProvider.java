@@ -60,20 +60,14 @@ public class MusicProvider extends ContentProvider {
             case LIST:
                 ret = mDatabase.delete(MusicPlayerDatabase.TABLE_LIST, "_id = "
                         + uri.getPathSegments().get(1), null);
-                if (ret > 0) {
-                    mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS, MusicPlayerDatabase.LIST_ID
-                            + " = " + uri.getPathSegments().get(1), null);
-                }
                 break;
             case ALL_MUSIC:
                 ret = mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS, selection, selectionArgs);
-//                updateListSize(listId);
                 break;
             case MUSIC:
-                long listId =Long.parseLong(uri.getPathSegments().get(1)); 
+                long musicId =Long.parseLong(uri.getPathSegments().get(1)); 
                 ret = mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS, "_id = "
-                        + listId, null);
-                updateListSize(listId);
+                        + musicId, null);
                 break;
             case LIST_MUSIC:
                 ret = mDatabase.delete(MusicPlayerDatabase.TABLE_MUSICS,
@@ -87,6 +81,8 @@ public class MusicProvider extends ContentProvider {
             Logger.e(TAG, "delete notifyChange" + uri);
             mContentResolver.notifyChange(uri, null);
         }
+        deleteIsolatedMusics();
+        updateAllListSize();
         return ret;
     }
 
@@ -109,8 +105,8 @@ public class MusicProvider extends ContentProvider {
             case MUSIC:
             case ALL_MUSIC:
                 Long listId = values.getAsLong(MusicPlayerDatabase.LIST_ID);
+                Logger.d(TAG, "insert " + uri + " listId=" + listId);
                 if (listId == null) {
-                    Logger.e(TAG, "insert " + uri + " listId=" + listId);
                     return null;
                 }
                 Cursor cursor = null;
@@ -229,6 +225,8 @@ public class MusicProvider extends ContentProvider {
                         MusicPlayerDatabase.LIST_ID + " = " + uri.getPathSegments().get(2), null);
                 break;
             case INTERNET:
+                mContentResolver.notifyChange(URI_MUSIC, null);
+                break;
             default:
                 Logger.e(TAG, "update " + uri + " is not yet supported!");
         }
@@ -340,5 +338,15 @@ public class MusicProvider extends ContentProvider {
                 c.close();
             }
         }
+    }
+    
+    private void updateAllListSize(){
+        String sql = "update list set list_size = (select count(*) from musics where list_id = list._id)";
+        mDatabase.execSQL(sql);
+    }
+    
+    private void deleteIsolatedMusics(){
+        String sql = "delete from musics where list_id not in(select _id from list)";
+        mDatabase.execSQL(sql);
     }
 }

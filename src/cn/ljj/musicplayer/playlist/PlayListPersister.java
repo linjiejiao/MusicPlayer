@@ -143,7 +143,6 @@ public class PlayListPersister {
             ContentValues values = getContentValues(music);
             Uri musicUri = mContentResolver.insert(MusicProvider.URI_MUSIC, values);
             if (musicUri != null) {
-                music.setListId(listId);
                 long musicId = Long.parseLong(musicUri.getPathSegments().get(1));
                 music.setId(musicId);
             }
@@ -173,6 +172,10 @@ public class PlayListPersister {
 
     public long updateMusic(MusicInfo music) {
         int ret = -1;
+        if(music.getListId() == -1){
+            mContentResolver.notifyChange(MusicProvider.URI_MUSIC, null);
+            return ret;
+        }
         long musicId = music.getId();
         if (musicId != -1) {
             ContentValues values = getContentValues(music);
