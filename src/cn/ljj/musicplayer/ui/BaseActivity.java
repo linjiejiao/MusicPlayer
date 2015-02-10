@@ -375,6 +375,9 @@ public class BaseActivity extends FragmentActivity implements OnClickListener, O
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if(lastMusic == null){
+                        return;
+                    }
                     String lrcPath = lastMusic.getLrcPath();
                     if (!TextUtils.isEmpty(lrcPath)) {
                         getPlayingFragment().setLrc(lrcPath);
